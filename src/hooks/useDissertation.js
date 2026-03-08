@@ -83,12 +83,13 @@ const INITIAL_STATE = {
     approvedCitations: {},
     includeDoi: false,
     completed: false,
+    plan: 'free', // New: Track plan per dissertation
     createdAt: null,
     lastModified: null
 };
 
 export const useDissertation = () => {
-    const { currentUser } = useAuth();
+    const { currentUser, userData } = useAuth();
     const [dissState, setDissState] = useState(INITIAL_STATE);
     const [savedDissertations, setSavedDissertations] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -163,8 +164,9 @@ export const useDissertation = () => {
             if (docSnap.exists()) {
                 const data = docSnap.data();
                 const isActuallyCompleted = data.completed || (data.chapters?.[5]?.approved && data.chapters?.[5]?.content);
+                const projectPlan = data.plan || 'free';
 
-                setDissState({ ...data, id: docSnap.id, completed: isActuallyCompleted });
+                setDissState({ ...data, id: docSnap.id, completed: isActuallyCompleted, plan: projectPlan });
 
                 const welcomeMsg = {
                     role: 'ai',
@@ -280,7 +282,7 @@ export const useDissertation = () => {
     };
 
     const addMessage = useCallback((msg) => {
-        setMessages(prev => [...prev, msg]);
+        setMessages(prev => [...prev, { ...msg, id: Date.now() + Math.random().toString(36).substr(2, 9) }]);
     }, []);
 
     // ... rest of the functions (generateTopics, generateChapterPlan, draftChapter, etc.)
@@ -322,7 +324,18 @@ export const useDissertation = () => {
         }
     };
 
-    const generateChapterPlan = async (chapterNum, topic) => {
+    const generateChapterPlan = useCallback(async (chapterNum, topic, isUpgrading = false) => {
+        // Enforce plan restriction: Free projects can only do Chapter 1
+        if (chapterNum > 1 && dissState.plan === 'free' && !isUpgrading) {
+            addMessage({
+                role: 'ai',
+                type: 'upgrade_required',
+                chapterNum: chapterNum,
+                content: `This project is currently on the Free Plan. To unlock Chapter ${chapterNum} and the rest of this dissertation, please upgrade this project for 10,000 MWK.`
+            });
+            return;
+        }
+
         setLoading(true);
         setDissState(prev => ({ ...prev, currentChapter: chapterNum }));
         const config = CHAPTER_CONFIGS[chapterNum];
@@ -363,7 +376,7 @@ export const useDissertation = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [dissState, addMessage]);
 
     const addResearchData = (data) => {
         setDissState(prev => ({ ...prev, researchData: prev.researchData + "\n" + data }));
@@ -373,7 +386,7 @@ export const useDissertation = () => {
         });
     };
 
-    const generateCitations = async (chapterNum) => {
+    const generateCitations = useCallback(async (chapterNum) => {
         setLoading(true);
         const prompt = `Generate 5 high-quality academic citations (APA 7th style) for Chapter ${chapterNum} of a dissertation on: "${dissState.topic}".
     The chapter focus is: "${dissState.chapters[chapterNum].title}".
@@ -409,9 +422,9 @@ export const useDissertation = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [dissState.topic, dissState.chapters, addMessage]);
 
-    const draftChapter = async (chapterNum) => {
+    const draftChapter = useCallback(async (chapterNum) => {
         const chapter = dissState.chapters[chapterNum];
         if (!chapter.plan) return;
 
@@ -504,9 +517,20 @@ export const useDissertation = () => {
             });
         }
         setLoading(false);
-    };
+    }, [dissState, addMessage]);
 
-    const approvePlan = (chapterNum) => {
+    const approvePlan = useCallback((chapterNum, isUpgrading = false) => {
+        // Double check plan restriction
+        if (chapterNum > 1 && dissState.plan === 'free' && !isUpgrading) {
+            addMessage({
+                role: 'ai',
+                type: 'upgrade_required',
+                chapterNum: chapterNum,
+                content: `Please upgrade this dissertation to Pro (10,000 MWK) to approve the plan and start drafting Chapter ${chapterNum}.`
+            });
+            return;
+        }
+
         setDissState(prev => ({
             ...prev,
             chapters: {
@@ -519,7 +543,7 @@ export const useDissertation = () => {
             content: `Chapter ${chapterNum} plan approved. Let's find some academic sources first.`
         });
         generateCitations(chapterNum);
-    };
+    }, [dissState.plan, addMessage, generateCitations]);
 
     const selectTopic = (topicData) => {
         setDissState(prev => ({
@@ -559,6 +583,30 @@ export const useDissertation = () => {
         ]);
     }, [currentUser]);
 
+    const buyPro = useCallback(async () => {
+        if (!dissState.id) return;
+        const newState = { ...dissState, plan: 'pro' };
+        setDissState(newState);
+        await saveToFirestore(newState);
+
+        // Auto-resume: Find the last 'upgrade_required' message and re-trigger the action
+        const lastUpgradeMsg = [...messages].reverse().find(m => m.type === 'upgrade_required');
+        if (lastUpgradeMsg) {
+            // Remove the upgrade_required message so the new action takes its place
+            setMessages(prev => prev.filter(m => m.id !== lastUpgradeMsg.id));
+
+            // Re-trigger the appropriate action based on the message content or chapterNum
+            const chapterNum = lastUpgradeMsg.chapterNum;
+            if (lastUpgradeMsg.content.includes("approve the plan")) {
+                approvePlan(chapterNum, true);
+            } else {
+                generateChapterPlan(chapterNum, newState.topic, true);
+            }
+        }
+
+        return true;
+    }, [dissState, messages, approvePlan, generateChapterPlan]);
+
     return {
         dissState,
         savedDissertations,
@@ -576,6 +624,7 @@ export const useDissertation = () => {
         startNewDissertation,
         exportFullToPDF,
         exportFullToWord,
-        addMessage
+        addMessage,
+        buyPro
     };
 };

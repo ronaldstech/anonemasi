@@ -1,10 +1,21 @@
 import React, { useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, User, Book, CheckCircle2, List, ChevronRight, Paperclip, Trophy, ArrowRight, Download } from 'lucide-react';
+import { Sparkles, User, Book, CheckCircle2, List, ChevronRight, Paperclip, Trophy, ArrowRight, Download, Zap } from 'lucide-react';
 
-const ACTIONABLE_TYPES = ['plan', 'citations', 'chapter_complete', 'dissertation_complete'];
+const ACTIONABLE_TYPES = ['plan', 'citations', 'chapter_complete', 'dissertation_complete', 'upgrade_required'];
 
-const ChatThread = ({ messages, loading, onSelectTopic, onApprovePlan, onStartTopicGen, draftChapter, onStartChapter, onExportWord, onExportPDF }) => {
+const ChatThread = ({
+    messages,
+    loading,
+    onSelectTopic,
+    onApprovePlan,
+    onStartTopicGen,
+    draftChapter,
+    onStartChapter,
+    onExportWord,
+    onExportPDF,
+    onUpgradeClick
+}) => {
     const scrollRef = useRef(null);
 
     useEffect(() => {
@@ -86,6 +97,29 @@ const ChatThread = ({ messages, loading, onSelectTopic, onApprovePlan, onStartTo
                     >
                         Start Chapter {pendingAction.nextChapter}
                         <ArrowRight size={13} />
+                    </button>
+                </motion.div>
+            );
+        }
+
+        if (pendingAction.type === 'upgrade_required') {
+            return (
+                <motion.div key="upgrade-action" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }} className={baseBar}>
+                    <div className="flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
+                            <Zap size={13} fill="currentColor" />
+                        </div>
+                        <div>
+                            <p className="text-[11px] font-bold text-[var(--text-primary)]">Upgrade Required</p>
+                            <p className="text-[10px] text-[var(--text-secondary)] line-clamp-1">{pendingAction.content}</p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={onUpgradeClick}
+                        className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white transition-all text-xs font-black shadow-lg shadow-indigo-500/20 shrink-0"
+                    >
+                        Unlock All Chapters
+                        <Sparkles size={12} />
                     </button>
                 </motion.div>
             );

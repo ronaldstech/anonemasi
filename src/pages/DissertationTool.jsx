@@ -10,10 +10,11 @@ import InputPanel from '../components/dissertation/InputPanel';
 import ChapterTracker from '../components/dissertation/ChapterTracker';
 import TopicGenModal from '../components/dissertation/Modals/TopicGenModal';
 import PreviewModal from '../components/dissertation/Modals/PreviewModal';
+import SubscriptionModal from '../components/dissertation/Modals/SubscriptionModal';
 
 const DissertationTool = () => {
     const navigate = useNavigate();
-    const { currentUser } = useAuth();
+    const { currentUser, userData } = useAuth();
     const {
         dissState,
         savedDissertations,
@@ -29,12 +30,14 @@ const DissertationTool = () => {
         exportFullToWord,
         draftChapter,
         generateChapterPlan,
-        addMessage
+        addMessage,
+        buyPro
     } = useDissertation();
 
     const [topicModalOpen, setTopicModalOpen] = useState(false);
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isSubscriptionOpen, setIsSubscriptionOpen] = useState(false);
 
     const handleStartChapter = (chapterNum) => {
         generateChapterPlan(chapterNum, dissState.topic);
@@ -61,6 +64,7 @@ const DissertationTool = () => {
                 onStartNew={startNewDissertation}
                 isOpen={isSidebarOpen}
                 onClose={() => setIsSidebarOpen(false)}
+                onUpgradeClick={() => setIsSubscriptionOpen(true)}
             />
 
             {/* Main Workspace */}
@@ -116,6 +120,7 @@ const DissertationTool = () => {
                         onStartChapter={handleStartChapter}
                         onExportWord={exportFullToWord}
                         onExportPDF={exportFullToPDF}
+                        onUpgradeClick={() => setIsSubscriptionOpen(true)}
                     />
                 </div>
 
@@ -144,6 +149,16 @@ const DissertationTool = () => {
                 topic={dissState.topic}
                 chapterTitle={currentChapterData?.title}
                 content={currentChapterData?.content}
+            />
+
+            <SubscriptionModal
+                isOpen={isSubscriptionOpen}
+                onClose={() => setIsSubscriptionOpen(false)}
+                onUpgrade={buyPro}
+                userName={userData?.name}
+                userEmail={currentUser?.email}
+                dissertationId={dissState.id}
+                userId={currentUser?.uid}
             />
         </div>
     );

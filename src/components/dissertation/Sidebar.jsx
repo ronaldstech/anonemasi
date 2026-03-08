@@ -7,12 +7,22 @@ import {
     Clock,
     LayoutDashboard,
     X,
-    LogOut
+    LogOut,
+    Zap
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 
-const Sidebar = ({ dissState, savedDissertations, onBack, onLoadDissertation, onStartNew, isOpen, onClose }) => {
+const Sidebar = ({
+    dissState,
+    savedDissertations,
+    onBack,
+    onLoadDissertation,
+    onStartNew,
+    isOpen,
+    onClose,
+    onUpgradeClick
+}) => {
     const { userData, logout } = useAuth();
     const chapters = Object.entries(dissState.chapters);
 
@@ -135,10 +145,18 @@ const Sidebar = ({ dissState, savedDissertations, onBack, onLoadDissertation, on
                                                     </p>
                                                     {isActive && <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse shrink-0" />}
                                                 </div>
-                                                <p className="text-[9px] text-[var(--text-secondary)] flex items-center gap-1">
-                                                    <LayoutDashboard size={9} />
-                                                    {item.program}
-                                                </p>
+                                                <div className="flex items-center gap-1.5">
+                                                    <p className="text-[9px] text-[var(--text-secondary)] flex items-center gap-1">
+                                                        <LayoutDashboard size={9} />
+                                                        {item.program}
+                                                    </p>
+                                                    {item.plan === 'pro' && (
+                                                        <span className="flex items-center gap-0.5 px-1 py-0.25 rounded bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[8px] font-black uppercase tracking-tighter border border-indigo-500/20">
+                                                            <Zap size={7} fill="currentColor" />
+                                                            Pro
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
                                             {isCompleted && !isActive && (
                                                 <div className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center text-white shrink-0 mt-0.5 shadow-sm shadow-green-500/20">
@@ -167,12 +185,21 @@ const Sidebar = ({ dissState, savedDissertations, onBack, onLoadDissertation, on
                     <div className="flex-1 min-w-0">
                         <p className="text-[11px] font-bold text-[var(--text-primary)] truncate">{userData?.name || 'Loading...'}</p>
                         <div className="flex items-center gap-1.5">
-                            <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${userData?.plan === 'pro'
+                            <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${dissState?.plan === 'pro'
                                 ? 'bg-indigo-500 text-white shadow-sm shadow-indigo-500/20'
                                 : 'bg-zinc-200 dark:bg-white/10 text-zinc-500 dark:text-zinc-400'
                                 }`}>
-                                {userData?.plan || 'Free'} Plan
+                                {dissState?.plan === 'pro' ? 'Pro' : 'Free'}
                             </span>
+                            {dissState?.plan !== 'pro' && (
+                                <button
+                                    onClick={onUpgradeClick}
+                                    className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-sm shadow-indigo-500/20 hover:scale-105 transition-all"
+                                >
+                                    <Zap size={8} fill="currentColor" />
+                                    Upgrade
+                                </button>
+                            )}
                         </div>
                     </div>
 
