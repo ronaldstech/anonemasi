@@ -19,17 +19,17 @@ const ChapterTracker = ({ currentChapter = 0 }) => {
                 </span>
             </div>
 
-            <div className="h-3.5 w-px bg-[var(--glass-border)] mx-1" />
+            <div className="hidden md:block h-3.5 w-px bg-[var(--glass-border)] mx-1" />
 
-            <div className="flex items-center gap-1.5">
+            <div className="hidden md:flex items-center gap-1.5">
                 {steps.map((step, i) => (
                     <React.Fragment key={step.id}>
                         <div className="flex items-center gap-1">
                             <div className={`w-4.5 h-4 px-1.5 rounded flex items-center justify-center text-[9px] font-bold transition-all ${i + 1 < currentChapter
-                                    ? 'bg-green-500/15 border border-green-500/30 text-green-500 dark:text-green-400'
-                                    : i + 1 === currentChapter
-                                        ? 'bg-indigo-500/15 border border-indigo-500/40 text-indigo-500 dark:text-indigo-400 shadow-[0_0_8px_rgba(99,102,241,0.25)]'
-                                        : 'bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-secondary)] opacity-50'
+                                ? 'bg-green-500/15 border border-green-500/30 text-green-500 dark:text-green-400'
+                                : i + 1 === currentChapter
+                                    ? 'bg-indigo-500/15 border border-indigo-500/40 text-indigo-500 dark:text-indigo-400 shadow-[0_0_8px_rgba(99,102,241,0.25)]'
+                                    : 'bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-secondary)] opacity-50'
                                 }`}>
                                 {i + 1}
                             </div>
