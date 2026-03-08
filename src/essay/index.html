@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EssayFlow Pro | Citation-First AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+</head>
+<body>
+<!-- LANDING PAGE -->
+<div id="landing-page" class="lp-root">
+
+    <!-- NAV -->
+    <nav class="lp-nav">
+        <div class="lp-nav-inner">
+            <div class="lp-brand">
+                <div class="lp-logo-icon"><i class="fas fa-feather-alt"></i></div>
+                <span>Anonemasi <strong>Writer</strong></span>
+            </div>
+            <div class="lp-nav-links">
+                <a href="#lp-features">Features</a>
+                <a href="#lp-how">How It Works</a>
+                <a href="#lp-pricing">Pricing</a>
+            </div>
+            <div class="lp-nav-actions">
+                <button class="lp-btn-ghost" onclick="showLoginModal()">Log In</button>
+                <button class="lp-btn-nav-cta" onclick="selectService('assignment')"><i class="fas fa-bolt"></i> Try Free</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="lp-hero">
+        <div class="lp-hero-glow lp-glow-1"></div>
+        <div class="lp-hero-glow lp-glow-2"></div>
+        <div class="lp-hero-inner">
+            <div class="lp-hero-badge"><span class="lp-badge-dot"></span> AI-Powered · APA 7th Edition · Free to Start</div>
+            <h1 class="lp-hero-h1">Write Academic Essays<br><span class="lp-hero-gradient">That Actually Score</span></h1>
+            <p class="lp-hero-sub">Paste your assignment brief or upload a PDF. Anonemasi Writer analyzes it, finds real academic sources, plans each paragraph, then drafts your full essay with proper in-text citations — all in minutes.</p>
+            <div class="lp-hero-btns">
+                <button class="lp-btn-primary" onclick="selectService('assignment')"><i class="fas fa-feather-alt"></i> Start Writing — It's Free</button>
+                <a class="lp-btn-secondary" href="#lp-how"><i class="fas fa-play-circle"></i> See How It Works</a>
+            </div>
+            <div class="lp-hero-trust">
+                <span><i class="fas fa-check-circle"></i> No account needed</span>
+                <span><i class="fas fa-check-circle"></i> APA citations included</span>
+                <span><i class="fas fa-check-circle"></i> PDF &amp; DOCX upload</span>
+                <span><i class="fas fa-check-circle"></i> Export to Word</span>
+            </div>
+        </div>
+        <!-- Mock UI card -->
+        <div class="lp-hero-card">
+            <div class="lp-card-bar">
+                <span class="lp-dot lp-dr"></span><span class="lp-dot lp-dy"></span><span class="lp-dot lp-dg"></span>
+                <span class="lp-card-title"><i class="fas fa-feather-alt"></i> Anonemasi Writer</span>
+            </div>
+            <div class="lp-card-body">
+                <div class="lp-card-step lp-cs-done"><i class="fas fa-check-circle"></i> Brief analyzed &amp; understood</div>
+                <div class="lp-card-step lp-cs-done"><i class="fas fa-check-circle"></i> 10 academic sources found</div>
+                <div class="lp-card-step lp-cs-done"><i class="fas fa-check-circle"></i> Plan approved — 7 paragraphs</div>
+                <div class="lp-card-step lp-cs-active"><span class="lp-spin-dot"></span> Writing paragraph 5 of 7…</div>
+                <div class="lp-card-para">
+                    <div class="lp-pl lp-pl-100"></div>
+                    <div class="lp-pl lp-pl-100"></div>
+                    <div class="lp-pl lp-pl-75"></div>
+                    <div class="lp-cite-chip">(Banda &amp; Chirwa, 2022, p. 14)</div>
+                    <div class="lp-pl lp-pl-100"></div>
+                    <div class="lp-pl lp-pl-55"></div>
+                </div>
+                <div class="lp-card-footer-row">
+                    <span class="lp-wc-badge"><i class="fas fa-text-width"></i> 847 / 1,500 words</span>
+                    <span class="lp-prog-bar-wrap"><span class="lp-prog-fill"></span></span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="lp-section" id="lp-features">
+        <div class="lp-section-inner">
+            <p class="lp-section-eyebrow">Features</p>
+            <h2 class="lp-section-h2">Everything You Need to Write with Confidence</h2>
+            <p class="lp-section-sub">Not just text generation — a full academic writing workflow from brief to submission-ready document.</p>
+            <div class="lp-feat-grid">
+                <div class="lp-feat-card">
+                    <div class="lp-feat-icon lp-fi-purple"><i class="fas fa-file-search"></i></div>
+                    <h3>Deep Brief Analysis</h3>
+                    <p>Drop in a PDF or DOCX brief, or just paste your text. The AI reads every detail — topic, marking criteria, word count requirements — before it writes a single word.</p>
+                </div>
+                <div class="lp-feat-card">
+                    <div class="lp-feat-icon lp-fi-green"><i class="fas fa-graduation-cap"></i></div>
+                    <h3>Real Academic Citations</h3>
+                    <p>Every paragraph includes properly formatted APA 7th edition in-text citations. A full reference list is automatically generated at the end of the essay.</p>
+                </div>
+                <div class="lp-feat-card">
+                    <div class="lp-feat-icon lp-fi-blue"><i class="fas fa-sitemap"></i></div>
+                    <h3>Approve Your Plan First</h3>
+                    <p>Before drafting begins, you see a full paragraph-by-paragraph plan — headings, purposes, word counts. Edit anything, then approve when you're satisfied.</p>
+                </div>
+                <div class="lp-feat-card">
+                    <div class="lp-feat-icon lp-fi-amber"><i class="fas fa-sliders-h"></i></div>
+                    <h3>Paragraph-Level Control</h3>
+                    <p>After drafting, expand or shorten any paragraph, regenerate ones you dislike, add new sections, or change word counts across the whole essay.</p>
+                </div>
+                <div class="lp-feat-card">
+                    <div class="lp-feat-icon lp-fi-teal"><i class="fas fa-file-word"></i></div>
+                    <h3>One-Click Word Export</h3>
+                    <p>Download a clean, properly formatted .doc file the moment you're happy — ready to submit or refine further in Microsoft Word.</p>
+                </div>
+                <div class="lp-feat-card">
+                    <div class="lp-feat-icon lp-fi-rose"><i class="fas fa-history"></i></div>
+                    <h3>Browser-Saved History</h3>
+                    <p>All your essays are saved in your browser automatically. Return any time to continue editing, regenerate sections, or export again.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="lp-section lp-section-alt" id="lp-how">
+        <div class="lp-section-inner">
+            <p class="lp-section-eyebrow">How It Works</p>
+            <h2 class="lp-section-h2">From Brief to Essay in 4 Simple Steps</h2>
+            <p class="lp-section-sub">No complicated setup. Just provide your requirements and let the AI handle the rest.</p>
+            <div class="lp-steps">
+                <div class="lp-step">
+                    <div class="lp-step-num">01</div>
+                    <div class="lp-step-content">
+                        <h3><i class="fas fa-upload"></i> Upload or Paste Your Brief</h3>
+                        <p>Drop a PDF or DOCX assignment brief, or type your requirements directly. The AI reads the full context — topic, instructions, word count, and marking criteria.</p>
+                    </div>
+                </div>
+                <div class="lp-step-line"></div>
+                <div class="lp-step">
+                    <div class="lp-step-num">02</div>
+                    <div class="lp-step-content">
+                        <h3><i class="fas fa-book-open"></i> Sources Are Found &amp; Formatted</h3>
+                        <p>8–12 relevant academic sources are identified with real authors, journals, and years — automatically formatted in APA 7th edition, ready to cite in the essay.</p>
+                    </div>
+                </div>
+                <div class="lp-step-line"></div>
+                <div class="lp-step">
+                    <div class="lp-step-num">03</div>
+                    <div class="lp-step-content">
+                        <h3><i class="fas fa-tasks"></i> Review &amp; Approve the Plan</h3>
+                        <p>A full paragraph plan is shown before writing starts. Edit headings, purposes, and word counts — then approve to begin drafting.</p>
+                    </div>
+                </div>
+                <div class="lp-step-line"></div>
+                <div class="lp-step">
+                    <div class="lp-step-num">04</div>
+                    <div class="lp-step-content">
+                        <h3><i class="fas fa-file-download"></i> Essay Drafted &amp; Exported</h3>
+                        <p>Each paragraph is drafted with citations woven in naturally. Export the finished essay as a Word document — formatted and submission-ready.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PRICING -->
+    <section class="lp-section" id="lp-pricing">
+        <div class="lp-section-inner">
+            <p class="lp-section-eyebrow">Pricing</p>
+            <h2 class="lp-section-h2">Simple, Honest Pricing</h2>
+            <p class="lp-section-sub">Try the essay writer completely free. Pay only for premium features when you're ready.</p>
+            <div class="lp-pricing-grid">
+
+                <!-- Free -->
+                <div class="lp-price-card">
+                    <div class="lp-price-head">
+                        <div class="lp-price-icon lp-pi-green"><i class="fas fa-feather-alt"></i></div>
+                        <div>
+                            <div class="lp-price-name">Essay Writer</div>
+                            <div class="lp-price-desc">For assignments &amp; coursework</div>
+                        </div>
+                    </div>
+                    <div class="lp-price-amt">
+                        <span class="lp-price-big">Free</span>
+                        <span class="lp-price-per">always</span>
+                    </div>
+                    <ul class="lp-price-list">
+                        <li><i class="fas fa-check"></i> Unlimited essays</li>
+                        <li><i class="fas fa-check"></i> APA 7th edition citations</li>
+                        <li><i class="fas fa-check"></i> PDF &amp; DOCX brief upload</li>
+                        <li><i class="fas fa-check"></i> Full paragraph plan &amp; editing</li>
+                        <li><i class="fas fa-check"></i> Add &amp; regenerate paragraphs</li>
+                        <li><i class="fas fa-check"></i> Word (.doc) export</li>
+                        <li><i class="fas fa-check"></i> Browser history saves</li>
+                    </ul>
+                    <button class="lp-price-btn lp-pbtn-outline" onclick="selectService('assignment')"><i class="fas fa-bolt"></i> Start Writing Now</button>
+                </div>
+
+                <!-- Pro / Featured -->
+                <div class="lp-price-card lp-price-card-pro">
+                    <div class="lp-price-badge">Best Value</div>
+                    <div class="lp-price-head">
+                        <div class="lp-price-icon lp-pi-purple"><i class="fas fa-crown"></i></div>
+                        <div>
+                            <div class="lp-price-name">Essay Pro</div>
+                            <div class="lp-price-desc">Full-service, one submission</div>
+                        </div>
+                    </div>
+                    <div class="lp-price-amt">
+                        <span class="lp-price-currency">K</span>
+                        <span class="lp-price-big">2,500</span>
+                        <span class="lp-price-per">per essay</span>
+                    </div>
+                    <ul class="lp-price-list">
+                        <li><i class="fas fa-check"></i> Everything in Free</li>
+                        <li><i class="fas fa-check"></i> Priority AI generation</li>
+                        <li><i class="fas fa-check"></i> Extended source searching</li>
+                        <li><i class="fas fa-check"></i> Up to 5,000-word essays</li>
+                        <li><i class="fas fa-check"></i> Plagiarism-aware writing</li>
+                        <li><i class="fas fa-check"></i> Dedicated support</li>
+                        <li><i class="fas fa-check"></i> Formatted cover page</li>
+                    </ul>
+                    <button class="lp-price-btn lp-pbtn-primary" onclick="showComingSoonModal('Essay Pro is launching very soon! The free version is available right now — give it a try.')"><i class="fas fa-lock"></i> Coming Soon</button>
+                </div>
+
+                <!-- Institution -->
+                <div class="lp-price-card">
+                    <div class="lp-price-head">
+                        <div class="lp-price-icon lp-pi-blue"><i class="fas fa-university"></i></div>
+                        <div>
+                            <div class="lp-price-name">Institution Plan</div>
+                            <div class="lp-price-desc">Schools, colleges &amp; tutors</div>
+                        </div>
+                    </div>
+                    <div class="lp-price-amt">
+                        <span class="lp-price-big" style="font-size:1.8rem;letter-spacing:-1px;">Custom</span>
+                    </div>
+                    <ul class="lp-price-list">
+                        <li><i class="fas fa-check"></i> Everything in Essay Pro</li>
+                        <li><i class="fas fa-check"></i> Multi-student accounts</li>
+                        <li><i class="fas fa-check"></i> Admin usage dashboard</li>
+                        <li><i class="fas fa-check"></i> Bulk essay management</li>
+                        <li><i class="fas fa-check"></i> Custom branding</li>
+                        <li><i class="fas fa-check"></i> Dedicated account manager</li>
+                    </ul>
+                    <button class="lp-price-btn lp-pbtn-outline" onclick="showComingSoonModal('Institution plans are coming soon. A contact form will be available here shortly.')"><i class="fas fa-envelope"></i> Get in Touch</button>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA BANNER -->
+    <section class="lp-cta">
+        <div class="lp-cta-glow"></div>
+        <div class="lp-cta-inner">
+            <div class="lp-cta-icon"><i class="fas fa-feather-alt"></i></div>
+            <h2>Ready to write your best essay?</h2>
+            <p>No sign-up. No card. Just paste your brief and go.</p>
+            <button class="lp-btn-primary lp-btn-large" onclick="selectService('assignment')"><i class="fas fa-feather-alt"></i> Try It Free Right Now</button>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="lp-footer">
+        <div class="lp-footer-inner">
+            <div class="lp-footer-brand">
+                <div class="lp-logo-icon lp-logo-icon-sm"><i class="fas fa-feather-alt"></i></div>
+                <span>Anonemasi <strong>Writer</strong></span>
+            </div>
+            <div class="lp-footer-links">
+                <a href="#lp-features">Features</a>
+                <a href="#lp-how">How It Works</a>
+                <a href="#lp-pricing">Pricing</a>
+                <a href="#" onclick="showLoginModal();return false;">Log In</a>
+                <a href="#" onclick="showSignupModal();return false;">Sign Up</a>
+            </div>
+            <p class="lp-footer-copy">© 2025 Anonemasi Writer · AI-Powered Academic Writing</p>
+        </div>
+    </footer>
+
+</div>
+
+<div class="app-layout" id="app-layout" style="display:none;">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <button class="back-btn" onclick="goBackToLanding()" title="Go back to main menu">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <div class="brand-text">
+                <div class="logo"><i class="fas fa-feather-alt"></i></div>
+                <span>Anonemasi <strong>Writer</strong></span>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <button class="nav-item" onclick="startNewAssignment()">
+                <i class="fas fa-plus-circle"></i> New Assignment
+            </button>
+            <div id="saved-assignments" class="saved-assignments"></div>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="status-pill">
+                <span class="dot-pulse"></span>
+                <span id="status-label">Ready</span>
+            </div>
+            <div class="progress-wrap" id="progress-wrap" style="display:none">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            <div id="para-counter" class="para-counter" style="display:none"></div>
+        </div>
+    </aside>
+
+    <!-- MAIN WORKSPACE -->
+    <main class="workspace">
+
+        <!-- TOP NAV -->
+        <header class="top-nav">
+            <div class="step-tracker">
+                <div class="st-item" id="st-1"><span class="st-num">1</span> Analyze</div>
+                <i class="fas fa-chevron-right st-sep"></i>
+                <div class="st-item" id="st-2"><span class="st-num">2</span> Citations</div>
+                <i class="fas fa-chevron-right st-sep"></i>
+                <div class="st-item" id="st-3"><span class="st-num">3</span> Plan</div>
+                <i class="fas fa-chevron-right st-sep"></i>
+                <div class="st-item" id="st-4"><span class="st-num">4</span> Draft</div>
+            </div>
+            <div class="top-actions">
+                <button class="btn-outline" onclick="showPreviewModal()"><i class="fas fa-eye"></i> Preview</button>
+                <button class="btn-export" id="export-btn" onclick="exportToWord()" disabled><i class="fas fa-download"></i> Export .doc</button>
+            </div>
+        </header>
+
+        <!-- CHAT THREAD -->
+        <div id="chat-scroller" class="chat-scroller">
+            <div class="chat-container" id="chat-thread">
+                <div class="msg ai-msg" id="welcome-msg">
+                    <div class="avatar-box"><i class="fas fa-feather-alt"></i></div>
+                    <div class="msg-content">
+                        <p class="msg-label">Anonemasi Writer</p>
+                        <h2>Welcome to your writing workspace.</h2>
+                        <p>Upload your assignment brief or paste your requirements below. I'll analyze it thoroughly, find academic sources, build a comprehensive plan that covers every angle of your topic, then draft each paragraph with proper citations and validated letter frequency — all visible right here as I work.</p>
+                        <div id="drop-zone" class="upload-zone">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p><strong>Drop your assignment brief here</strong></p>
+                            <span>PDF or DOCX supported · or paste text below</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- INPUT PANEL -->
+        <footer class="input-panel">
+            <div class="input-container">
+                <textarea id="main-input" placeholder="Paste your assignment requirements here..." rows="1" oninput="autoGrow(this)"></textarea>
+                <div class="input-actions">
+                    <label class="attach-btn" for="file-input" title="Upload file">
+                        <i class="fas fa-paperclip"></i>
+                    </label>
+                    <button id="send-btn" class="send-btn" onclick="startGeneration()">
+                        <i class="fas fa-arrow-up"></i>
+                    </button>
+                </div>
+                <input type="file" id="file-input" hidden accept=".pdf,.doc,.docx">
+            </div>
+            <p class="input-hint">Anonemasi Writer generates comprehensive essays with in-text APA citations and validated writing</p>
+        </footer>
+    </main>
+</div>
+
+<!-- PREVIEW MODAL -->
+<div id="preview-modal" class="modal" style="display:none">
+    <div class="modal-backdrop" onclick="closePreview()"></div>
+    <div class="modal-content">
+        <div class="modal-toolbar">
+            <span><i class="fas fa-file-word"></i> Essay Preview</span>
+            <div style="display:flex;gap:10px">
+                <button class="btn-outline" onclick="exportToWord()"><i class="fas fa-download"></i> Export .doc</button>
+                <button class="btn-close" onclick="closePreview()"><i class="fas fa-times"></i></button>
+            </div>
+        </div>
+        <div id="paper-view" class="paper-view"></div>
+    </div>
+</div>
+
+<!-- SOURCES MODAL -->
+<div id="sources-modal" class="modal" style="display:none">
+    <div class="modal-backdrop" onclick="closeSourcesModal()"></div>
+    <div class="modal-content-sm">
+        <div class="modal-header">
+            <h3><i class="fas fa-books"></i> Manage Sources</h3>
+            <button class="btn-close" onclick="closeSourcesModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <p class="modal-desc">Would you like to add your own sources or have AI find additional sources?</p>
+            <div class="source-options">
+                <button class="option-card" onclick="showUploadSources()">
+                    <i class="fas fa-upload"></i>
+                    <span>Upload My Sources</span>
+                    <small>Upload PDF/DOCX sources</small>
+                </button>
+                <button class="option-card" onclick="showAISourcesInput()">
+                    <i class="fas fa-robot"></i>
+                    <span>AI Search Sources</span>
+                    <small>Let AI find more sources</small>
+                </button>
+            </div>
+            
+            <div id="upload-sources-section" style="display:none;">
+                <div class="upload-area">
+                    <input type="file" id="source-file-input" accept=".pdf,.docx" multiple hidden>
+                    <label for="source-file-input" class="upload-label">
+                        <i class="fas fa-cloud-upload"></i>
+                        <span>Click to upload sources</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div id="ai-sources-section" style="display:none;">
+                <label class="input-label">Number of additional sources:</label>
+                <input type="number" id="ai-sources-count" min="1" max="10" value="3" class="number-input">
+                <button class="btn-primary" onclick="searchAdditionalSources()">
+                    <i class="fas fa-search"></i> Search Sources
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ADD PARAGRAPH MODAL -->
+<div id="add-para-modal" class="modal" style="display:none">
+    <div class="modal-backdrop" onclick="closeAddParaModal()"></div>
+    <div class="modal-content-sm">
+        <div class="modal-header">
+            <h3><i class="fas fa-plus-circle"></i> Add Paragraph</h3>
+            <button class="btn-close" onclick="closeAddParaModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <label class="input-label">Paragraph Heading:</label>
+            <input type="text" id="new-para-heading" class="text-input" placeholder="Enter paragraph heading">
+            
+            <label class="input-label">Purpose:</label>
+            <textarea id="new-para-purpose" class="text-area" rows="2" placeholder="What should this paragraph cover?"></textarea>
+            
+            <label class="input-label">Word Count:</label>
+            <input type="number" id="new-para-words" class="number-input" value="150" min="50" max="500">
+            
+            <label class="input-label">Position:</label>
+            <select id="new-para-position" class="select-input">
+                <option value="before-conclusion">Before Conclusion</option>
+                <option value="end">At End (After Conclusion)</option>
+            </select>
+            
+            <button class="btn-primary full-width" onclick="addNewParagraph()">
+                <i class="fas fa-plus"></i> Add Paragraph
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- WORD COUNT CHANGE MODAL -->
+<div id="word-count-modal" class="modal" style="display:none">
+    <div class="modal-backdrop" onclick="closeWordCountModal()"></div>
+    <div class="modal-content-sm">
+        <div class="modal-header">
+            <h3><i class="fas fa-text-width"></i> Apply Word Count Change</h3>
+            <button class="btn-close" onclick="closeWordCountModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <p id="word-count-question" class="modal-desc"></p>
+            <div class="action-row" style="margin-top:20px;justify-content:flex-end;gap:10px">
+                <button class="btn-outline" onclick="wordCountModalResponse(false)">
+                    <i class="fas fa-times"></i> No, Just This One
+                </button>
+                <button class="btn-primary" onclick="wordCountModalResponse(true)">
+                    <i class="fas fa-check"></i> Yes, Apply to All
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CONFIRMATION MODAL -->
+<div id="confirm-modal" class="modal" style="display:none">
+    <div class="modal-backdrop" onclick="closeConfirmModal()"></div>
+    <div class="modal-content-sm">
+        <div class="modal-header">
+            <h3 id="confirm-title"><i class="fas fa-exclamation-circle"></i> Confirm Action</h3>
+            <button class="btn-close" onclick="closeConfirmModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <p id="confirm-message" class="modal-desc"></p>
+            <div class="action-row" style="margin-top:20px;justify-content:flex-end;gap:10px">
+                <button class="btn-outline" onclick="closeConfirmModal()">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button class="btn-primary btn-danger" id="confirm-btn" onclick="confirmModalResponse()">
+                    <i class="fas fa-check"></i> Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- COMING SOON MODAL -->
+<div id="coming-soon-modal" class="modal" style="display:none">
+    <div class="modal-backdrop" onclick="closeComingSoonModal()"></div>
+    <div class="modal-content-sm">
+        <div class="modal-header">
+            <h3><i class="fas fa-clock"></i> Coming Soon</h3>
+            <button class="btn-close" onclick="closeComingSoonModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <p class="modal-desc" id="coming-soon-message"></p>
+            <div class="action-row" style="margin-top:20px;justify-content:center;">
+                <button class="btn-primary" onclick="closeComingSoonModal()">
+                    <i class="fas fa-check"></i> Okay
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- LOGIN MODAL -->
+<div id="login-modal" class="modal" style="display:none">
+    <div class="modal-backdrop" onclick="closeLoginModal()"></div>
+    <div class="modal-content-sm">
+        <div class="modal-header">
+            <h3><i class="fas fa-sign-in-alt"></i> Log In</h3>
+            <button class="btn-close" onclick="closeLoginModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <p class="modal-desc">This feature is coming soon! You'll be able to save your work and access it from any device.</p>
+            <div class="action-row" style="margin-top:20px;justify-content:center;">
+                <button class="btn-primary" onclick="closeLoginModal()">
+                    <i class="fas fa-check"></i> Okay
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SIGNUP MODAL -->
+<div id="signup-modal" class="modal" style="display:none">
+    <div class="modal-backdrop" onclick="closeSignupModal()"></div>
+    <div class="modal-content-sm">
+        <div class="modal-header">
+            <h3><i class="fas fa-user-plus"></i> Sign Up</h3>
+            <button class="btn-close" onclick="closeSignupModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <p class="modal-desc">This feature is coming soon! You'll be able to create an account to save your work and access premium features.</p>
+            <div class="action-row" style="margin-top:20px;justify-content:center;">
+                <button class="btn-primary" onclick="closeSignupModal()">
+                    <i class="fas fa-check"></i> Okay
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- DISSERTATION MODE MODALS -->
+<!-- TOPIC GENERATION MODAL -->
+<div id="topic-gen-modal" class="modal" style="display:none">
+    <div class="modal-backdrop" onclick="closeTopicGenModal()"></div>
+    <div class="modal-content-sm">
+        <div class="modal-header">
+            <h3><i class="fas fa-lightbulb"></i> Generate Research Topics</h3>
+            <button class="btn-close" onclick="closeTopicGenModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <label class="input-label">Your Program/Field:</label>
+            <input type="text" id="topic-program" class="text-input" placeholder="e.g., Business Management, Public Health, Law">
+            
+            <label class="input-label">Region/Location:</label>
+            <input type="text" id="topic-region" class="text-input" placeholder="e.g., Blantyre, Lilongwe, Southern Region">
+            
+            <label class="input-label">Specific Interest (Optional):</label>
+            <textarea id="topic-interest" class="text-area" rows="2" placeholder="Any specific area you're interested in?"></textarea>
+            
+            <button class="btn-primary full-width" onclick="generateTopics()">
+                <i class="fas fa-magic"></i> Generate 10 Topics
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- MANUAL TOPIC MODAL -->
+<div id="manual-topic-modal" class="modal" style="display:none">
+    <div class="modal-backdrop" onclick="closeManualTopicModal()"></div>
+    <div class="modal-content-sm">
+        <div class="modal-header">
+            <h3><i class="fas fa-keyboard"></i> Enter Your Topic</h3>
+            <button class="btn-close" onclick="closeManualTopicModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <label class="input-label">Research Topic:</label>
+            <textarea id="manual-topic-input" class="text-area" rows="3" placeholder="Enter your full research topic or title"></textarea>
+            
+            <button class="btn-primary full-width" onclick="submitManualTopicDiss()">
+                <i class="fas fa-check"></i> Continue with This Topic
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- UPLOAD EXISTING MODAL -->
+<div id="upload-existing-modal" class="modal" style="display:none">
+    <div class="modal-backdrop" onclick="closeUploadExistingModal()"></div>
+    <div class="modal-content-sm">
+        <div class="modal-header">
+            <h3><i class="fas fa-upload"></i> Upload Existing Content</h3>
+            <button class="btn-close" onclick="closeUploadExistingModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <p class="modal-desc">Paste your existing dissertation content, and I'll analyze it and continue from where you left off.</p>
+            
+            <label class="input-label">Your Topic:</label>
+            <input type="text" id="existing-topic" class="text-input" placeholder="Research topic">
+            
+            <label class="input-label">Existing Content:</label>
+            <textarea id="existing-content" class="text-area" rows="8" placeholder="Paste your existing chapters or sections here"></textarea>
+            
+            <button class="btn-primary full-width" onclick="submitExistingContent()">
+                <i class="fas fa-check"></i> Analyze & Continue
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- CHAPTER PLAN MODAL -->
+<div id="chapter-plan-modal" class="modal" style="display:none">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content" style="max-width: 700px;">
+        <div class="modal-header">
+            <h3><i class="fas fa-list"></i> <span id="plan-modal-title">Chapter Plan</span></h3>
+            <button class="btn-close" onclick="closeChapterPlanModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body" id="plan-modal-body" style="max-height: 60vh; overflow-y: auto;">
+            <!-- Plan content will be inserted here -->
+        </div>
+        <div class="action-row" style="padding: 16px 24px; border-top: 1px solid var(--border); justify-content: flex-end;">
+            <button class="btn-outline" onclick="regeneratePlan()">
+                <i class="fas fa-sync"></i> Regenerate Plan
+            </button>
+            <button class="btn-primary" onclick="approvePlanAndGenerate()">
+                <i class="fas fa-check"></i> Approve & Generate
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- DATA INPUT MODAL (After Chapter 3) -->
+<div id="data-input-modal" class="modal" style="display:none">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content" style="max-width: 650px;">
+        <div class="modal-header">
+            <h3><i class="fas fa-database"></i> Research Data Input</h3>
+            <button class="btn-close" onclick="closeDataInputModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <p class="modal-desc">You've completed the first three chapters. Now I need your research data to write Chapters 4 and 5.</p>
+            
+            <div class="data-options">
+                <button class="option-card" onclick="selectDataOption('paste')">
+                    <i class="fas fa-clipboard"></i>
+                    <span>Paste My Data</span>
+                    <small>Enter your research findings</small>
+                </button>
+                <button class="option-card" onclick="selectDataOption('research')">
+                    <i class="fas fa-search"></i>
+                    <span>AI Desk Research</span>
+                    <small>Find and analyze data</small>
+                </button>
+            </div>
+            
+            <div id="paste-data-section" style="display:none; margin-top: 16px;">
+                <label class="input-label">Research Findings & Data:</label>
+                <textarea id="research-data-input" class="text-area" rows="8" placeholder="Paste your research findings, survey results, interview data, or analysis here..."></textarea>
+                <button class="btn-primary full-width" onclick="submitResearchData()">
+                    <i class="fas fa-check"></i> Continue with This Data
+                </button>
+            </div>
+            
+            <div id="research-data-section" style="display:none; margin-top: 16px;">
+                <label class="input-label">Research Query:</label>
+                <textarea id="research-query-input" class="text-area" rows="3" placeholder="What data should I search for? (e.g., recent statistics on X, case studies about Y)"></textarea>
+                <button class="btn-primary full-width" onclick="performDeskResearch()">
+                    <i class="fas fa-search"></i> Search & Analyze Data
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
