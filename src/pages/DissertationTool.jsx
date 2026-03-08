@@ -49,6 +49,23 @@ const DissertationTool = () => {
         }
     }, [currentUser, navigate]);
 
+    // Fix mobile layout: reset any scroll/overflow state carried over from the landing page
+    useEffect(() => {
+        // Scroll to top and remove any overflow locks the home page may have set
+        window.scrollTo(0, 0);
+        document.documentElement.style.overflow = '';
+        document.documentElement.style.height = '';
+        document.body.style.overflow = '';
+        document.body.style.height = '';
+        document.body.style.position = '';
+
+        return () => {
+            // Restore defaults when leaving the tool
+            document.documentElement.style.overflow = '';
+            document.body.style.overflow = '';
+        };
+    }, []);
+
     if (!currentUser) return null;
 
     const currentChapterData = dissState.chapters[dissState.currentChapter];
