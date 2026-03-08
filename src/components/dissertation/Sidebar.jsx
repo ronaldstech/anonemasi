@@ -6,12 +6,20 @@ import {
     CheckCircle2,
     Clock,
     LayoutDashboard,
-    X
+    X,
+    LogOut
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../../context/AuthContext';
 
 const Sidebar = ({ dissState, savedDissertations, onBack, onLoadDissertation, onStartNew, isOpen, onClose }) => {
+    const { userData, logout } = useAuth();
     const chapters = Object.entries(dissState.chapters);
+
+    const getInitials = (name) => {
+        if (!name) return '?';
+        return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+    };
 
     const sidebarContent = (
         <aside className={`w-64 h-full border-r border-zinc-200 dark:border-white/10 bg-white dark:bg-[#0d0d0f] flex flex-col z-50 shrink-0 shadow-2xl lg:shadow-none`}>
@@ -102,34 +110,79 @@ const Sidebar = ({ dissState, savedDissertations, onBack, onLoadDissertation, on
                             Saved Assignments
                         </h3>
                         <div className="space-y-1">
-                            {savedDissertations.map((item) => (
-                                <button
-                                    key={item.id}
-                                    onClick={() => { onLoadDissertation(item.id); onClose?.(); }}
-                                    className="w-full p-3 rounded-xl bg-zinc-50 dark:bg-white/5 border border-zinc-200 dark:border-white/5 hover:border-indigo-300 dark:hover:border-indigo-500/30 hover:bg-indigo-50 dark:hover:bg-indigo-500/5 transition-all text-left active:scale-[0.98] group"
-                                >
-                                    <p className="text-[11px] font-bold text-[var(--text-primary)] line-clamp-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors mb-0.5">{item.topic}</p>
-                                    <p className="text-[9px] text-[var(--text-secondary)] flex items-center gap-1">
-                                        <LayoutDashboard size={9} />
-                                        {item.program}
-                                    </p>
-                                </button>
-                            ))}
+                            {savedDissertations.map((item) => {
+                                // A dissertation is completed if the flag is set OR if Chapter 5 is finished
+                                const isCompleted = item.completed || (item.chapters?.[5]?.approved && item.chapters?.[5]?.content);
+                                const isActive = item.id === dissState.id;
+
+                                return (
+                                    <button
+                                        key={item.id}
+                                        onClick={() => { onLoadDissertation(item.id); onClose?.(); }}
+                                        className={`w-full p-3 rounded-xl border transition-all text-left active:scale-[0.98] group relative ${isActive
+                                            ? 'ring-2 ring-indigo-500/50 border-indigo-500 bg-indigo-50/50 dark:bg-indigo-500/10 shadow-lg shadow-indigo-500/10'
+                                            : isCompleted
+                                                ? 'bg-green-50/50 dark:bg-green-500/5 border-green-200 dark:border-green-500/20 hover:border-green-400'
+                                                : 'bg-zinc-50 dark:bg-white/5 border-zinc-200 dark:border-white/5 hover:border-indigo-300 dark:hover:border-indigo-500/30 hover:bg-indigo-50 dark:hover:bg-indigo-500/5'
+                                            }`}
+                                    >
+                                        <div className="flex items-start justify-between gap-2">
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-1.5 mb-1">
+                                                    <p className={`text-[11px] font-bold line-clamp-1 transition-colors ${isActive ? 'text-indigo-600 dark:text-indigo-400' : isCompleted ? 'text-green-700 dark:text-green-400' : 'text-[var(--text-primary)] group-hover:text-indigo-600 dark:group-hover:text-indigo-400'
+                                                        }`}>
+                                                        {item.topic}
+                                                    </p>
+                                                    {isActive && <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse shrink-0" />}
+                                                </div>
+                                                <p className="text-[9px] text-[var(--text-secondary)] flex items-center gap-1">
+                                                    <LayoutDashboard size={9} />
+                                                    {item.program}
+                                                </p>
+                                            </div>
+                                            {isCompleted && !isActive && (
+                                                <div className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center text-white shrink-0 mt-0.5 shadow-sm shadow-green-500/20">
+                                                    <CheckCircle2 size={10} />
+                                                </div>
+                                            )}
+                                        </div>
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
                 )}
             </div>
 
-            {/* Footer */}
-            <div className="p-3 border-t border-zinc-200 dark:border-white/5">
-                <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-zinc-50 dark:bg-white/5 border border-zinc-200 dark:border-white/10">
-                    <div className="w-7 h-7 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
-                        <PlusCircle size={14} />
+            {/* User Profile Footer */}
+            <div className="p-3 border-t border-zinc-200 dark:border-white/5 bg-zinc-50/50 dark:bg-white/5">
+                <div className="flex items-center gap-3 p-2 rounded-xl border border-transparent hover:border-zinc-200 dark:hover:border-white/10 transition-all group relative">
+                    <div className="w-9 h-9 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-indigo-500/20 shrink-0 overflow-hidden ring-2 ring-white dark:ring-zinc-900">
+                        {userData?.photoURL ? (
+                            <img src={userData.photoURL} alt={userData.name} className="w-full h-full object-cover" />
+                        ) : (
+                            getInitials(userData?.name || 'User')
+                        )}
                     </div>
                     <div className="flex-1 min-w-0">
-                        <p className="text-[10px] font-bold text-[var(--text-primary)]">Upgrade Pro</p>
-                        <p className="text-[9px] text-[var(--text-secondary)] truncate">Get unlimited AI writing</p>
+                        <p className="text-[11px] font-bold text-[var(--text-primary)] truncate">{userData?.name || 'Loading...'}</p>
+                        <div className="flex items-center gap-1.5">
+                            <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${userData?.plan === 'pro'
+                                ? 'bg-indigo-500 text-white shadow-sm shadow-indigo-500/20'
+                                : 'bg-zinc-200 dark:bg-white/10 text-zinc-500 dark:text-zinc-400'
+                                }`}>
+                                {userData?.plan || 'Free'} Plan
+                            </span>
+                        </div>
                     </div>
+
+                    <button
+                        onClick={() => logout()}
+                        title="Logout"
+                        className="p-1.5 rounded-lg text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100"
+                    >
+                        <LogOut size={14} />
+                    </button>
                 </div>
             </div>
         </aside>

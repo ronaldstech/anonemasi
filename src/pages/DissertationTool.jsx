@@ -74,7 +74,7 @@ const DissertationTool = () => {
                         >
                             <Menu size={20} />
                         </button>
-                        <ChapterTracker currentChapter={dissState.currentChapter} />
+                        <ChapterTracker currentChapter={dissState.currentChapter} completed={dissState.completed} />
                     </div>
 
                     <div className="flex items-center gap-1.5 lg:gap-2">

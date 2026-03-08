@@ -82,6 +82,7 @@ const INITIAL_STATE = {
     chapterCitations: {},
     approvedCitations: {},
     includeDoi: false,
+    completed: false,
     createdAt: null,
     lastModified: null
 };
@@ -161,11 +162,59 @@ export const useDissertation = () => {
             const docSnap = await getDoc(docRef);
             if (docSnap.exists()) {
                 const data = docSnap.data();
-                setDissState({ ...data, id: docSnap.id });
-                setMessages([{
+                const isActuallyCompleted = data.completed || (data.chapters?.[5]?.approved && data.chapters?.[5]?.content);
+
+                setDissState({ ...data, id: docSnap.id, completed: isActuallyCompleted });
+
+                const welcomeMsg = {
                     role: 'ai',
                     content: `Welcome back! We are currently working on "${data.topic}".`
-                }]);
+                };
+
+                const resumptionMessages = [welcomeMsg];
+
+                // Determine the correct "actionable" message to resume the UI
+                if (isActuallyCompleted) {
+                    resumptionMessages.push({
+                        role: 'ai',
+                        type: 'dissertation_complete',
+                        content: 'All 5 chapters are complete! Your full dissertation is ready to export.'
+                    });
+                } else if (data.currentChapter > 0) {
+                    const chNum = data.currentChapter;
+                    const chap = data.chapters[chNum];
+
+                    if (chap.content && chap.approved) {
+                        // Chapter drafting is finished
+                        if (chNum < 5) {
+                            resumptionMessages.push({
+                                role: 'ai',
+                                type: 'chapter_complete',
+                                chapterNum: chNum,
+                                nextChapter: chNum + 1,
+                                content: `Chapter ${chNum} is complete! Ready to move on to Chapter ${chNum + 1}.`
+                            });
+                        }
+                    } else if (chap.approved) {
+                        // Plan approved, waiting for drafting (citations should be ready)
+                        resumptionMessages.push({
+                            role: 'ai',
+                            type: 'citations',
+                            chapterNum: chNum,
+                            citations: data.chapterCitations?.[chNum] || []
+                        });
+                    } else if (chap.plan) {
+                        // Plan ready but not approved
+                        resumptionMessages.push({
+                            role: 'ai',
+                            type: 'plan',
+                            chapterNum: chNum,
+                            plan: chap.plan
+                        });
+                    }
+                }
+
+                setMessages(resumptionMessages);
             }
         } catch (error) {
             console.error("Error loading dissertation:", error);
@@ -441,6 +490,13 @@ export const useDissertation = () => {
                 content: `Chapter ${chapterNum} is complete! Ready to move on to Chapter ${chapterNum + 1}.`
             });
         } else {
+            const finalState = { ...dissState, completed: true };
+            // Ensure chapter 5 is also marked as approved/finished in the state
+            finalState.chapters[5] = { ...finalState.chapters[5], approved: true };
+
+            setDissState(finalState);
+            saveToFirestore(finalState); // Immediate save
+
             addMessage({
                 role: 'ai',
                 type: 'dissertation_complete',

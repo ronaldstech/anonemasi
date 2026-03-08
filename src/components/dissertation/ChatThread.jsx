@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, User, Book, CheckCircle2, List, ChevronRight, Paperclip, Trophy, ArrowRight } from 'lucide-react';
+import { Sparkles, User, Book, CheckCircle2, List, ChevronRight, Paperclip, Trophy, ArrowRight, Download } from 'lucide-react';
 
 const ACTIONABLE_TYPES = ['plan', 'citations', 'chapter_complete', 'dissertation_complete'];
 

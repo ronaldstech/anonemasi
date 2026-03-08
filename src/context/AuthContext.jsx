@@ -17,6 +17,7 @@ export function useAuth() {
 
 export function AuthProvider({ children }) {
     const [currentUser, setCurrentUser] = useState(null);
+    const [userData, setUserData] = useState(null);
     const [loading, setLoading] = useState(true);
 
     // Sign up with email and password
@@ -28,6 +29,7 @@ export function AuthProvider({ children }) {
                 uid: userCredential.user.uid,
                 name: name,
                 email: email,
+                plan: 'free',
                 createdAt: new Date()
             });
             return userCredential;
@@ -55,6 +57,8 @@ export function AuthProvider({ children }) {
                     uid: result.user.uid,
                     name: result.user.displayName || 'New User',
                     email: result.user.email,
+                    plan: 'free',
+                    photoURL: result.user.photoURL,
                     createdAt: new Date()
                 });
             }
@@ -71,8 +75,22 @@ export function AuthProvider({ children }) {
     }
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
             setCurrentUser(user);
+
+            if (user) {
+                // Fetch additional user data from Firestore
+                const userRef = doc(db, 'users', user.uid);
+                const userSnap = await getDoc(userRef);
+                if (userSnap.exists()) {
+                    setUserData(userSnap.data());
+                } else {
+                    setUserData(null);
+                }
+            } else {
+                setUserData(null);
+            }
+
             setLoading(false);
         });
 
@@ -81,6 +99,7 @@ export function AuthProvider({ children }) {
 
     const value = {
         currentUser,
+        userData,
         signup,
         login,
         loginWithGoogle,
