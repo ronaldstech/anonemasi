@@ -47,7 +47,7 @@ const InputPanel = ({ loading, onSend }) => {
                         onChange={handleInput}
                         onKeyDown={handleKeyDown}
                         placeholder="Type your dissertation topic, paste a concept note, or ask anything…"
-                        className="w-full bg-transparent border-none focus:ring-0 text-[var(--text-primary)] p-3.5 pr-24 resize-none text-sm leading-relaxed custom-scrollbar placeholder:text-zinc-400 dark:placeholder:text-white/30"
+                        className="w-full bg-transparent border-none focus:ring-0 text-[var(--text-primary)] p-3 lg:p-3.5 pr-20 lg:pr-24 resize-none text-[13px] lg:text-sm leading-relaxed custom-scrollbar placeholder:text-zinc-400 dark:placeholder:text-white/30"
                     />
 
                     <div className="absolute right-2 bottom-2 flex items-center gap-1.5">

@@ -1,4 +1,3 @@
-import React from 'react';
 import {
     PlusCircle,
     History,
@@ -6,24 +5,18 @@ import {
     BookOpen,
     CheckCircle2,
     Clock,
-    LayoutDashboard
+    LayoutDashboard,
+    X
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
-const Sidebar = ({ dissState, savedDissertations, onBack, onLoadDissertation, onStartNew }) => {
+const Sidebar = ({ dissState, savedDissertations, onBack, onLoadDissertation, onStartNew, isOpen, onClose }) => {
     const chapters = Object.entries(dissState.chapters);
 
-    return (
-        <aside className="w-64 h-full border-r border-zinc-200 dark:border-white/10 bg-white dark:bg-[#0d0d0f] flex flex-col z-30 shrink-0">
+    const sidebarContent = (
+        <aside className={`w-64 h-full border-r border-zinc-200 dark:border-white/10 bg-white dark:bg-[#0d0d0f] flex flex-col z-50 shrink-0 shadow-2xl lg:shadow-none`}>
             {/* Header / Brand */}
-            <div className="p-4 border-b border-zinc-200 dark:border-white/5">
-                <button
-                    onClick={onBack}
-                    className="flex items-center gap-2 text-zinc-400 dark:text-white/40 hover:text-zinc-800 dark:hover:text-white transition-colors mb-4 text-xs font-medium group"
-                >
-                    <ArrowLeft size={14} className="group-hover:-translate-x-0.5 transition-transform" />
-                    Back to Dashboard
-                </button>
-
+            <div className="p-4 border-b border-zinc-200 dark:border-white/5 flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
                     <div className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 shrink-0">
                         <BookOpen size={16} className="text-white" />
@@ -33,12 +26,29 @@ const Sidebar = ({ dissState, savedDissertations, onBack, onLoadDissertation, on
                         <p className="text-[9px] text-[var(--text-secondary)] uppercase tracking-widest font-bold">Dissertation Pro</p>
                     </div>
                 </div>
+                {/* Close button for mobile */}
+                <button
+                    onClick={onClose}
+                    className="lg:hidden p-2 text-zinc-400 hover:text-zinc-800 dark:hover:text-white transition-colors"
+                >
+                    <X size={18} />
+                </button>
+            </div>
+
+            <div className="p-4">
+                <button
+                    onClick={onBack}
+                    className="flex items-center gap-2 text-zinc-400 dark:text-white/40 hover:text-zinc-800 dark:hover:text-white transition-colors text-xs font-medium group"
+                >
+                    <ArrowLeft size={14} className="group-hover:-translate-x-0.5 transition-transform" />
+                    Back to Dashboard
+                </button>
             </div>
 
             <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-5">
                 {/* New Session */}
                 <button
-                    onClick={onStartNew}
+                    onClick={() => { onStartNew(); onClose?.(); }}
                     className="w-full p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/20 transition-all flex items-center gap-2.5 group text-sm font-bold"
                 >
                     <PlusCircle size={16} className="group-hover:rotate-90 transition-transform duration-300 shrink-0" />
@@ -61,16 +71,17 @@ const Sidebar = ({ dissState, savedDissertations, onBack, onLoadDissertation, on
                                 return (
                                     <button
                                         key={num}
+                                        onClick={() => onClose?.()}
                                         className={`w-full px-2.5 py-2 rounded-lg flex items-center gap-2.5 transition-all text-left group ${isActive
-                                                ? 'bg-indigo-50 dark:bg-white/5 border border-indigo-200 dark:border-white/10 text-[var(--text-primary)]'
-                                                : 'text-zinc-500 dark:text-white/40 hover:text-[var(--text-primary)] hover:bg-zinc-100 dark:hover:bg-white/5'
+                                            ? 'bg-indigo-50 dark:bg-white/5 border border-indigo-200 dark:border-white/10 text-[var(--text-primary)]'
+                                            : 'text-zinc-500 dark:text-white/40 hover:text-[var(--text-primary)] hover:bg-zinc-100 dark:hover:bg-white/5'
                                             }`}
                                     >
                                         <div className={`w-5 h-5 rounded-md flex items-center justify-center text-[9px] font-mono border shrink-0 ${isActive
-                                                ? 'bg-indigo-100 dark:bg-indigo-500/20 border-indigo-300 dark:border-indigo-500/40 text-indigo-600 dark:text-indigo-400'
-                                                : isCompleted
-                                                    ? 'bg-green-50 dark:bg-green-500/10 border-green-200 dark:border-green-500/20 text-green-600 dark:text-green-400'
-                                                    : 'bg-zinc-100 dark:bg-white/5 border-zinc-200 dark:border-white/5 text-zinc-400 dark:text-white/20'
+                                            ? 'bg-indigo-100 dark:bg-indigo-500/20 border-indigo-300 dark:border-indigo-500/40 text-indigo-600 dark:text-indigo-400'
+                                            : isCompleted
+                                                ? 'bg-green-50 dark:bg-green-500/10 border-green-200 dark:border-green-500/20 text-green-600 dark:text-green-400'
+                                                : 'bg-zinc-100 dark:bg-white/5 border-zinc-200 dark:border-white/5 text-zinc-400 dark:text-white/20'
                                             }`}>
                                             {isCompleted ? <CheckCircle2 size={10} /> : num}
                                         </div>
@@ -94,7 +105,7 @@ const Sidebar = ({ dissState, savedDissertations, onBack, onLoadDissertation, on
                             {savedDissertations.map((item) => (
                                 <button
                                     key={item.id}
-                                    onClick={() => onLoadDissertation(item.id)}
+                                    onClick={() => { onLoadDissertation(item.id); onClose?.(); }}
                                     className="w-full p-3 rounded-xl bg-zinc-50 dark:bg-white/5 border border-zinc-200 dark:border-white/5 hover:border-indigo-300 dark:hover:border-indigo-500/30 hover:bg-indigo-50 dark:hover:bg-indigo-500/5 transition-all text-left active:scale-[0.98] group"
                                 >
                                     <p className="text-[11px] font-bold text-[var(--text-primary)] line-clamp-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors mb-0.5">{item.topic}</p>
@@ -122,6 +133,39 @@ const Sidebar = ({ dissState, savedDissertations, onBack, onLoadDissertation, on
                 </div>
             </div>
         </aside>
+    );
+
+    return (
+        <>
+            {/* Desktop Sidebar */}
+            <div className="hidden lg:flex h-full">
+                {sidebarContent}
+            </div>
+
+            {/* Mobile Drawer */}
+            <AnimatePresence>
+                {isOpen && (
+                    <>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={onClose}
+                            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] lg:hidden"
+                        />
+                        <motion.div
+                            initial={{ x: '-100%' }}
+                            animate={{ x: 0 }}
+                            exit={{ x: '-100%' }}
+                            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                            className="fixed inset-y-0 left-0 z-[70] lg:hidden"
+                        >
+                            {sidebarContent}
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
+        </>
     );
 };
 

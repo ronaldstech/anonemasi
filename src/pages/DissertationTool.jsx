@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, Eye } from 'lucide-react';
+import { Download, Eye, Menu } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useDissertation } from '../hooks/useDissertation';
@@ -34,6 +34,7 @@ const DissertationTool = () => {
 
     const [topicModalOpen, setTopicModalOpen] = useState(false);
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     const handleStartChapter = (chapterNum) => {
         generateChapterPlan(chapterNum, dissState.topic);
@@ -50,7 +51,7 @@ const DissertationTool = () => {
     const currentChapterData = dissState.chapters[dissState.currentChapter];
 
     return (
-        <div className="flex h-screen bg-[var(--bg-color)] text-[var(--text-primary)] font-sans overflow-hidden">
+        <div className="flex h-screen bg-[var(--bg-color)] text-[var(--text-primary)] font-sans overflow-hidden relative">
             {/* Sidebar */}
             <Sidebar
                 dissState={dissState}
@@ -58,36 +59,46 @@ const DissertationTool = () => {
                 onBack={() => navigate('/')}
                 onLoadDissertation={loadDissertation}
                 onStartNew={startNewDissertation}
+                isOpen={isSidebarOpen}
+                onClose={() => setIsSidebarOpen(false)}
             />
 
             {/* Main Workspace */}
             <main className="flex-1 flex flex-col relative overflow-hidden bg-[var(--bg-color)]">
                 {/* Top Header */}
-                <header className="h-12 border-b border-[var(--glass-border)] px-5 flex items-center justify-between backdrop-blur-md bg-[var(--glass-bg)] z-20 shrink-0">
-                    <ChapterTracker currentChapter={dissState.currentChapter} />
+                <header className="h-14 lg:h-12 border-b border-[var(--glass-border)] px-4 lg:px-5 flex items-center justify-between backdrop-blur-md bg-[var(--glass-bg)] z-20 shrink-0">
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={() => setIsSidebarOpen(true)}
+                            className="lg:hidden p-2 -ml-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                        >
+                            <Menu size={20} />
+                        </button>
+                        <ChapterTracker currentChapter={dissState.currentChapter} />
+                    </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 lg:gap-2">
                         <button
                             onClick={() => setIsPreviewOpen(true)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--glass-border)] hover:bg-[var(--glass-bg)] transition-all text-xs font-medium text-[var(--text-secondary)]"
+                            className="flex items-center gap-1.5 px-2.5 lg:px-3 py-1.5 rounded-lg border border-[var(--glass-border)] hover:bg-[var(--glass-bg)] transition-all text-[10px] lg:text-xs font-medium text-[var(--text-secondary)]"
                         >
-                            <Eye size={14} />
+                            <Eye size={14} className="hidden xs:block" />
                             Preview
                         </button>
                         <button
                             onClick={exportFullToWord}
                             disabled={!dissState.topic}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-white/10 hover:bg-zinc-200 dark:hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all text-xs font-bold text-[var(--text-primary)] border border-zinc-200 dark:border-white/10"
+                            className="flex items-center gap-1.5 px-2.5 lg:px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-white/10 hover:bg-zinc-200 dark:hover:bg-white/20 disabled:opacity-30 disabled:cursor-not-allowed transition-all text-[10px] lg:text-xs font-bold text-[var(--text-primary)] border border-zinc-200 dark:border-white/10"
                         >
-                            <Download size={14} className="text-blue-500" />
+                            <Download size={14} className="text-blue-500 hidden xs:block" />
                             Word
                         </button>
                         <button
                             onClick={exportFullToPDF}
                             disabled={!dissState.topic}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all text-xs font-bold text-white shadow-lg shadow-indigo-500/20"
+                            className="flex items-center gap-1.5 px-2.5 lg:px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:opacity-30 disabled:cursor-not-allowed transition-all text-[10px] lg:text-xs font-bold text-white shadow-lg shadow-indigo-500/20"
                         >
-                            <Download size={14} />
+                            <Download size={14} className="hidden xs:block" />
                             PDF
                         </button>
                     </div>

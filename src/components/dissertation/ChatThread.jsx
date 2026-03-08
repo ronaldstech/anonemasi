@@ -20,7 +20,7 @@ const ChatThread = ({ messages, loading, onSelectTopic, onApprovePlan, onStartTo
     const renderActionBar = () => {
         if (!pendingAction) return null;
 
-        const baseBar = "flex items-center justify-between gap-3 px-4 py-2.5 bg-white dark:bg-[#0e0e10] border-t border-zinc-200 dark:border-white/10";
+        const baseBar = "flex flex-col xs:flex-row items-center justify-between gap-3 px-4 py-3 xs:py-2.5 bg-white dark:bg-[#0e0e10] border-t border-zinc-200 dark:border-white/10";
 
         if (pendingAction.type === 'plan') {
             return (
