@@ -234,7 +234,7 @@ export const useDissertation = () => {
             }
         }
         if (dissState.references) {
-            bodyContent += `<h2>References</h2>${dissState.references}`;
+            bodyContent += `<h2 style="page-break-before: always;">References</h2>${dissState.references}`;
         }
         return bodyContent;
     };

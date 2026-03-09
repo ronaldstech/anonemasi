@@ -85,7 +85,7 @@ export default function Login() {
             >
                 <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-[2.5rem] blur-xl opacity-20 dark:opacity-40 animate-pulse-glow pointer-events-none" />
 
-                <div className="glass-panel p-10 rounded-[2rem] border border-[var(--glass-border)] relative backdrop-blur-3xl bg-white/60 dark:bg-black/40 shadow-2xl">
+                <div className="glass-panel p-10 rounded-[2rem] border border-[var(--glass-border)] relative backdrop-blur-3xl bg-white/80 dark:bg-black/40 shadow-2xl">
                     <motion.div variants={itemVariants} className="flex justify-center mb-8">
                         <Link to="/" className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 hover:scale-105 transition-transform">
                             <GraduationCap className="w-8 h-8 text-white" />
@@ -113,7 +113,7 @@ export default function Login() {
                                     required
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full bg-white/40 dark:bg-white/5 border border-[var(--glass-border)] rounded-xl py-3.5 pl-12 pr-4 text-[var(--text-primary)] placeholder-[var(--text-secondary)]/50 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-inner dark:shadow-none"
+                                    className="w-full bg-white dark:bg-white/5 border border-zinc-200 dark:border-[var(--glass-border)] rounded-xl py-3.5 pl-12 pr-4 text-[var(--text-primary)] placeholder-zinc-400 dark:placeholder-[var(--text-secondary)]/50 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-sm dark:shadow-none"
                                     placeholder="name@university.edu"
                                 />
                             </div>
@@ -131,7 +131,7 @@ export default function Login() {
                                     required
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full bg-white/40 dark:bg-white/5 border border-[var(--glass-border)] rounded-xl py-3.5 pl-12 pr-12 text-[var(--text-primary)] placeholder-[var(--text-secondary)]/50 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-inner dark:shadow-none"
+                                    className="w-full bg-white dark:bg-white/5 border border-zinc-200 dark:border-[var(--glass-border)] rounded-xl py-3.5 pl-12 pr-12 text-[var(--text-primary)] placeholder-zinc-400 dark:placeholder-[var(--text-secondary)]/50 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-sm dark:shadow-none"
                                     placeholder="••••••••"
                                 />
                                 <button
@@ -171,7 +171,7 @@ export default function Login() {
                             type="button"
                             onClick={handleGoogleLogin}
                             disabled={loading}
-                            className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-[var(--glass-border)] bg-white/40 dark:bg-white/5 hover:bg-white/60 dark:hover:bg-white/10 transition-colors shadow-sm dark:shadow-none disabled:opacity-70 disabled:cursor-not-allowed"
+                            className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-zinc-200 dark:border-[var(--glass-border)] bg-white dark:bg-white/5 hover:bg-zinc-50 dark:hover:bg-white/10 transition-colors shadow-sm dark:shadow-none text-[var(--text-primary)] disabled:opacity-70 disabled:cursor-not-allowed"
                         >
                             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />

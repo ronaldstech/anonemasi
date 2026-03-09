@@ -123,7 +123,7 @@ export default function Profile() {
             >
                 <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 rounded-[2.5rem] blur-xl opacity-20 dark:opacity-40 animate-pulse-glow pointer-events-none" />
 
-                <div className="glass-panel p-10 rounded-[2rem] border border-[var(--glass-border)] relative backdrop-blur-3xl bg-white/60 dark:bg-black/40 shadow-2xl">
+                <div className="glass-panel p-10 rounded-[2rem] border border-[var(--glass-border)] relative backdrop-blur-3xl bg-white/80 dark:bg-black/40 shadow-2xl">
                     <motion.div variants={itemVariants} className="flex items-center justify-between mb-8">
                         <Link to="/" className="flex items-center gap-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
                             <ArrowLeft className="w-5 h-5" />
@@ -175,7 +175,7 @@ export default function Profile() {
                                         required
                                         value={userData.name}
                                         onChange={(e) => setUserData({ ...userData, name: e.target.value })}
-                                        className="w-full bg-white/40 dark:bg-white/5 border border-[var(--glass-border)] rounded-xl py-3.5 pl-12 pr-4 text-[var(--text-primary)] placeholder-[var(--text-secondary)]/50 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-inner dark:shadow-none"
+                                        className="w-full bg-white dark:bg-white/5 border border-zinc-200 dark:border-[var(--glass-border)] rounded-xl py-3.5 pl-12 pr-4 text-[var(--text-primary)] placeholder-zinc-400 dark:placeholder-[var(--text-secondary)]/50 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all shadow-sm dark:shadow-none"
                                         placeholder="Jane Doe"
                                     />
                                 </div>
@@ -189,7 +189,7 @@ export default function Profile() {
                                         type="email"
                                         value={userData.email}
                                         disabled
-                                        className="w-full bg-[var(--bg-color)]/50 border border-[var(--glass-border)] rounded-xl py-3.5 pl-12 pr-4 text-[var(--text-primary)] opacity-50 cursor-not-allowed"
+                                        className="w-full bg-zinc-50 dark:bg-[var(--bg-color)]/50 border border-zinc-200 dark:border-[var(--glass-border)] rounded-xl py-3.5 pl-12 pr-4 text-[var(--text-primary)] opacity-60 cursor-not-allowed"
                                     />
                                 </div>
                                 <p className="text-xs text-[var(--text-secondary)] ml-1">Email cannot be changed currently.</p>

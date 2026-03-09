@@ -23,6 +23,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Profile from './pages/Profile';
 import DissertationTool from './pages/DissertationTool';
+import EssayTool from './pages/EssayTool';
 
 const tools = [
   {
@@ -527,7 +528,7 @@ function App() {
         <Route path="/profile" element={<Profile />} />
         {/* Tool routes */}
         <Route path="/dissertation" element={<DissertationTool />} />
-        <Route path="/essay" element={<div className="min-h-screen p-20 text-center text-2xl text-[var(--text-primary)] bg-[var(--bg-color)]">Essay Tool Coming Soon</div>} />
+        <Route path="/essay" element={<EssayTool />} />
         <Route path="/powerpoint" element={<div className="min-h-screen p-20 text-center text-2xl text-[var(--text-primary)] bg-[var(--bg-color)]">PowerPoint Tool Coming Soon</div>} />
       </Routes>
     </Router>
