@@ -83,7 +83,17 @@ export function expandSlides(slides) {
 
 export const sanitiseSlides = (slides) => {
     if (!Array.isArray(slides)) return [];
-    return slides.filter(s => {
+    return slides.map(s => {
+        // Defensively flatten nested title/subtitle if LLM returns an object for title
+        if (s.title && typeof s.title === 'object') {
+            const titleObj = s.title;
+            s.title = titleObj.title || "Untitled Slide";
+            if (!s.subtitle && titleObj.subtitle) {
+                s.subtitle = titleObj.subtitle;
+            }
+        }
+        return s;
+    }).filter(s => {
         if (s.type === "title") return true;
         if (s.paragraph) return true;
         if (s.bullets && s.bullets.length) return true;

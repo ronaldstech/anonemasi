@@ -21,20 +21,32 @@ import {
     Sparkles,
     Palette,
     Target,
-    Copy
+    Copy,
+    Trash2,
+    FilePlus
 } from "lucide-react";
 import "./PowerPointTool.css";
 
-import {
-    extractDocText,
-    sanitiseSlides,
-    generateSlideData,
-    extractPptxData,
-    buildFreshPptx,
-    buildTemplatePptx
-} from "../services/powerpointService";
+import { usePowerPoint } from "../hooks/usePowerPoint";
+import { buildFreshPptx, buildTemplatePptx } from "../services/powerpointService";
 
 const PowerPointTool = () => {
+    // Custom Hook State
+    const {
+        powerPointState,
+        savedPowerPoints,
+        messages,
+        files,
+        loading,
+        setFiles,
+        loadPowerPoint,
+        startNewPowerPoint,
+        deletePowerPoint,
+        updateConfig,
+        runGeneration,
+        handleFileUpload
+    } = usePowerPoint();
+
     // UI State
     const [activePanel, setActivePanel] = useState("sources"); // sources, template, customize, copycat
     const [showHistory, setShowHistory] = useState(false);
@@ -44,6 +56,17 @@ const PowerPointTool = () => {
     const [isBusy, setIsBusy] = useState(false);
     const [toasts, setToasts] = useState([]);
     const [isDesktop, setIsDesktop] = useState(true);
+    const [userInput, setUserInput] = useState("");
+    const [currentSlideIdx, setCurrentSlideIdx] = useState(0);
+
+    const { slides, config, extData } = powerPointState;
+
+    // Reset slide index when loading new slides
+    useEffect(() => {
+        if (slides.length > 0 && currentSlideIdx >= slides.length) {
+            setCurrentSlideIdx(0);
+        }
+    }, [slides, currentSlideIdx]);
 
     useEffect(() => {
         const handleResize = () => setIsDesktop(window.innerWidth > 1024);
@@ -52,48 +75,16 @@ const PowerPointTool = () => {
         return () => window.removeEventListener("resize", handleResize);
     }, []);
 
-    // Data State
-    const [messages, setMessages] = useState([
-        { role: "assistant", content: "Hi! I'm your PowerPoint architect. What are we presenting today?", type: "text" }
-    ]);
-    const [userInput, setUserInput] = useState("");
-    const [slides, setSlides] = useState([]);
-    const [currentSlideIdx, setCurrentSlideIdx] = useState(0);
-
-    // Configuration State
-    const [config, setConfig] = useState({
-        slideCount: 10,
-        pointsPerSlide: 3,
-        linesPerPoint: "medium", // short, medium, long
-        audience: "Professional",
-        focus: "Content & Clarity",
-        style: "fresh", // fresh, template, copycat
-        styleRef: true
-    });
-
-    // Files State
-    const [files, setFiles] = useState({
-        main: null,
-        sources: [],
-        template: null,
-        copycat: null
-    });
-
-    // Extracted Data Cache
-    const [extData, setExtData] = useState({
-        mainText: "",
-        sourceText: "",
-        tplTheme: null,
-        tplText: "",
-        ccTheme: null,
-        ccText: ""
-    });
-
     const chatEndRef = useRef(null);
 
     useEffect(() => {
         chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
+
+    // Sync busy state with loading
+    useEffect(() => {
+        setIsBusy(loading);
+    }, [loading]);
 
     const addToast = (msg, type = "info") => {
         const id = Date.now();
@@ -101,73 +92,33 @@ const PowerPointTool = () => {
         setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 4000);
     };
 
-    const handleFileUpload = async (e, type) => {
+    const handleUploadClick = async (e, type) => {
         const file = e.target.files[0];
         if (!file) return;
-
-        setIsBusy(true);
-        try {
-            if (type === "sources") {
-                const text = await extractDocText(file);
-                setFiles(prev => ({ ...prev, sources: [...prev.sources, file] }));
-                setExtData(prev => ({ ...prev, sourceText: prev.sourceText + "\n\n" + text }));
-                addToast(`Source "${file.name}" added`, "success");
-            } else if (type === "template") {
-                const data = await extractPptxData(file);
-                setFiles(prev => ({ ...prev, template: file }));
-                setExtData(prev => ({ ...prev, tplTheme: data.theme, tplText: data.text }));
-                setConfig(prev => ({ ...prev, style: "template" }));
-                addToast("Template processed", "success");
-            } else if (type === "copycat") {
-                const data = await extractPptxData(file);
-                setFiles(prev => ({ ...prev, copycat: file }));
-                setExtData(prev => ({ ...prev, ccTheme: data.theme, ccText: data.text }));
-                setConfig(prev => ({ ...prev, style: "copycat" }));
-                addToast("Reference deck processed", "success");
-            } else {
-                const text = await extractDocText(file);
-                setFiles(prev => ({ ...prev, main: file }));
-                setExtData(prev => ({ ...prev, mainText: text }));
-                addToast(`Main document "${file.name}" uploaded`, "success");
-            }
-        } catch (err) {
-            addToast(err.message, "error");
-        } finally {
-            setIsBusy(false);
+        const res = await handleFileUpload(file, type);
+        if (res.success) {
+            addToast(res.message, "success");
+        } else {
+            addToast(res.message, "error");
         }
+        // Reset input so the same file can be uploaded again if needed
+        e.target.value = null;
     };
 
-    const runGeneration = async () => {
+    const handleRunGeneration = async () => {
         if (!userInput.trim() && !extData.mainText) {
             addToast("Please provide a topic or upload a document", "warning");
             return;
         }
 
-        setIsBusy(true);
-        const userMsg = userInput.trim();
-        setMessages(prev => [...prev, { role: "user", content: userMsg || "Generate from document", type: "text" }]);
+        const inputToRun = userInput;
         setUserInput("");
-
-        try {
-            const combinedContent = (extData.mainText + "\n" + extData.sourceText).trim();
-            const slideData = await generateSlideData(combinedContent, userMsg, config, extData);
-
-            const cleanSlides = sanitiseSlides(slideData);
-            setSlides(cleanSlides);
+        const res = await runGeneration(inputToRun);
+        if (res.success) {
             setCurrentSlideIdx(0);
-
-            setMessages(prev => [...prev, {
-                role: "assistant",
-                content: `I've generated ${cleanSlides.length} slides for your presentation. You can preview them on the right.`,
-                type: "text",
-                actionable: true
-            }]);
             addToast("Slides generated!", "success");
-        } catch (err) {
-            addToast(err.message, "error");
-            setMessages(prev => [...prev, { role: "assistant", content: "Sorry, I encountered an error: " + err.message, type: "error" }]);
-        } finally {
-            setIsBusy(false);
+        } else {
+            addToast(res.message, "error");
         }
     };
 
@@ -205,117 +156,177 @@ const PowerPointTool = () => {
                         animate={{ x: 0 }}
                         exit={isDesktop ? false : { x: -280 }}
                         transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                        className={`pp-sidebar p-5 gap-6 ${isMobileMenuOpen ? "pp-sidebar-mobile" : ""}`}
+                        className={`pp-sidebar p-5 gap-6 ${isMobileMenuOpen ? "pp-sidebar-mobile" : ""} relative z-50`}
                     >
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center shadow-lg">
-                                    <Layout className="text-white w-6 h-6" />
+                        {showHistory ? (
+                            // History Sidebar Content
+                            <div className="flex flex-col h-full">
+                                <div className="flex items-center justify-between mb-6">
+                                    <div className="flex items-center gap-2">
+                                        <button onClick={() => setShowHistory(false)} className="p-1 hover:bg-white/10 rounded-lg transition-colors text-[var(--pp-text-dim)]">
+                                            <ChevronLeft size={20} />
+                                        </button>
+                                        <h2 className="font-bold text-lg">History</h2>
+                                    </div>
+                                    <button onClick={startNewPowerPoint} className="p-1.5 hover:bg-indigo-500/10 text-indigo-500 rounded-lg transition-colors">
+                                        <FilePlus size={18} />
+                                    </button>
                                 </div>
-                                <h1 className="font-bold text-xl tracking-tight">PPT Gen</h1>
-                            </div>
-                            <button onClick={() => setIsMobileMenuOpen(false)} className="lg:hidden p-2 text-[var(--pp-text-dim)]">
-                                <X size={24} />
-                            </button>
-                        </div>
 
-                        <nav className="flex flex-col gap-2">
-                            {[
-                                { id: "sources", icon: <FileText size={18} />, label: "Sources" },
-                                { id: "template", icon: <Palette size={18} />, label: "Template" },
-                                { id: "customize", icon: <Settings size={18} />, label: "Customize" },
-                                { id: "copycat", icon: <Copy size={18} />, label: "Copycat" }
-                            ].map(tab => (
-                                <button
-                                    key={tab.id}
-                                    onClick={() => setActivePanel(tab.id)}
-                                    className={`flex items-center gap-3 p-3 rounded-xl transition-all ${activePanel === tab.id
-                                        ? "bg-indigo-600/10 text-indigo-500 font-semibold"
-                                        : "hover:bg-white/5 text-[var(--pp-text-dim)]"
-                                        }`}
-                                >
-                                    {tab.icon}
-                                    <span className="text-sm">{tab.label}</span>
-                                </button>
-                            ))}
-                        </nav>
-
-                        <div className="mt-auto pt-6 border-t border-[var(--pp-border)]">
-                            <div className="pp-glass-card p-4">
-                                <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--pp-text-dim)] mb-3 flex items-center gap-2">
-                                    <Zap size={14} className="text-yellow-500" /> Tool Active
-                                </h3>
-                                {activePanel === "sources" && (
-                                    <div className="space-y-3">
-                                        <label className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-[var(--pp-border)] rounded-xl cursor-pointer hover:border-indigo-500/50 transition-colors">
-                                            <Upload size={20} className="mb-2 text-indigo-500" />
-                                            <span className="text-[10px] text-center">Upload PDF/Docs</span>
-                                            <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, "sources")} accept=".pdf,.docx" />
-                                        </label>
-                                        <div className="flex flex-wrap gap-2">
-                                            {files.sources.map((f, i) => (
-                                                <div key={i} className="pp-badge flex items-center gap-1">
-                                                    <FileText size={10} /> {f.name.slice(0, 10)}...
-                                                    <X size={10} className="cursor-pointer" onClick={() => {
-                                                        setFiles(prev => ({ ...prev, sources: prev.sources.filter((_, idx) => idx !== i) }));
-                                                        addToast("Source removed");
-                                                    }} />
-                                                </div>
-                                            ))}
+                                <div className="flex-1 overflow-y-auto pr-2 space-y-2 pp-scroll-hide">
+                                    {savedPowerPoints.length === 0 ? (
+                                        <div className="text-center py-10 opacity-50">
+                                            <History size={32} className="mx-auto mb-3" />
+                                            <p className="text-sm">No saved presentations yet</p>
                                         </div>
-                                    </div>
-                                )}
-
-                                {activePanel === "template" && (
-                                    <div className="space-y-3">
-                                        <p className="text-[10px] text-[var(--pp-text-dim)]">Preserve design from an existing PPTX.</p>
-                                        <label className="flex items-center gap-2 p-2 bg-indigo-500/20 text-indigo-400 rounded-lg cursor-pointer hover:bg-indigo-500/30 transition-colors text-xs font-medium justify-center">
-                                            <Palette size={14} /> {files.template ? "Change Template" : "Select PPTX"}
-                                            <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, "template")} accept=".pptx" />
-                                        </label>
-                                        {files.template && <div className="text-[10px] text-center font-medium text-indigo-500">{files.template.name}</div>}
-                                    </div>
-                                )}
-
-                                {activePanel === "customize" && (
-                                    <div className="space-y-4">
-                                        <div className="space-y-1">
-                                            <label className="text-[10px] font-bold text-[var(--pp-text-dim)]">Slide Count</label>
-                                            <input
-                                                type="range" min="3" max="25" value={config.slideCount}
-                                                onChange={(e) => setConfig(prev => ({ ...prev, slideCount: parseInt(e.target.value) }))}
-                                                className="w-full accent-indigo-500"
-                                            />
-                                            <div className="flex justify-between text-[10px] font-medium"><span>3</span> <span>{config.slideCount} slides</span> <span>25</span></div>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="text-[10px] font-bold text-[var(--pp-text-dim)]">Audience</label>
-                                            <select
-                                                value={config.audience}
-                                                onChange={(e) => setConfig(prev => ({ ...prev, audience: e.target.value }))}
-                                                className="w-full bg-white/5 border border-[var(--pp-border)] rounded-lg p-1 text-[10px]"
+                                    ) : (
+                                        savedPowerPoints.map(ppt => (
+                                            <div
+                                                key={ppt.id}
+                                                className={`p-3 rounded-xl border flex flex-col gap-2 cursor-pointer transition-all ${powerPointState.id === ppt.id
+                                                    ? 'bg-indigo-500/10 border-indigo-500/30'
+                                                    : 'bg-white/5 border-[var(--pp-border)] hover:bg-white/10'
+                                                    }`}
+                                                onClick={() => {
+                                                    loadPowerPoint(ppt.id);
+                                                    if (!isDesktop) setIsMobileMenuOpen(false);
+                                                }}
                                             >
-                                                <option value="Professional">Professional</option>
-                                                <option value="Academic">Academic</option>
-                                                <option value="Creative">Creative</option>
-                                                <option value="General">General</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {activePanel === "copycat" && (
-                                    <div className="space-y-3">
-                                        <p className="text-[10px] text-[var(--pp-text-dim)]">Mirror slide structure & count from a reference PPTX.</p>
-                                        <label className="flex items-center gap-2 p-2 bg-purple-500/20 text-purple-400 rounded-lg cursor-pointer hover:bg-purple-500/30 transition-colors text-xs font-medium justify-center">
-                                            <Copy size={14} /> {files.copycat ? "Change Reference" : "Select PPTX"}
-                                            <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, "copycat")} accept=".pptx" />
-                                        </label>
-                                        {files.copycat && <div className="text-[10px] text-center font-medium text-purple-500">{files.copycat.name}</div>}
-                                    </div>
-                                )}
+                                                <div className="flex items-start justify-between gap-2">
+                                                    <h3 className="text-sm font-semibold truncate leading-tight">
+                                                        {ppt.topic || "Untitled Presentation"}
+                                                    </h3>
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); deletePowerPoint(ppt.id); }}
+                                                        className="text-red-400 hover:text-red-300 p-1 opacity-0 hover:opacity-100 transition-opacity"
+                                                        style={{ opacity: isDesktop ? undefined : 1 }}
+                                                    >
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                </div>
+                                                <div className="flex items-center justify-between text-[10px] text-[var(--pp-text-dim)]">
+                                                    <span>{ppt.slides?.length || 0} slides</span>
+                                                    <span>{ppt.lastModified?.toDate().toLocaleDateString() || "Just now"}</span>
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
                             </div>
-                        </div>
+                        ) : (
+                            // Main Controls Sidebar Content
+                            <>
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center shadow-lg">
+                                            <Layout className="text-white w-6 h-6" />
+                                        </div>
+                                        <h1 className="font-bold text-xl tracking-tight">PPT Gen</h1>
+                                    </div>
+                                    <button onClick={() => setIsMobileMenuOpen(false)} className="lg:hidden p-2 text-[var(--pp-text-dim)]">
+                                        <X size={24} />
+                                    </button>
+                                </div>
+
+                                <nav className="flex flex-col gap-2">
+                                    {[
+                                        { id: "sources", icon: <FileText size={18} />, label: "Sources" },
+                                        { id: "template", icon: <Palette size={18} />, label: "Template" },
+                                        { id: "customize", icon: <Settings size={18} />, label: "Customize" },
+                                        { id: "copycat", icon: <Copy size={18} />, label: "Copycat" }
+                                    ].map(tab => (
+                                        <button
+                                            key={tab.id}
+                                            onClick={() => setActivePanel(tab.id)}
+                                            className={`flex items-center gap-3 p-3 rounded-xl transition-all ${activePanel === tab.id
+                                                ? "bg-indigo-600/10 text-indigo-500 font-semibold"
+                                                : "hover:bg-white/5 text-[var(--pp-text-dim)]"
+                                                }`}
+                                        >
+                                            {tab.icon}
+                                            <span className="text-sm">{tab.label}</span>
+                                        </button>
+                                    ))}
+                                </nav>
+
+                                <div className="mt-auto pt-6 border-t border-[var(--pp-border)]">
+                                    <div className="pp-glass-card p-4">
+                                        <h3 className="text-xs font-bold uppercase tracking-wider text-[var(--pp-text-dim)] mb-3 flex items-center gap-2">
+                                            <Zap size={14} className="text-yellow-500" /> Tool Active
+                                        </h3>
+                                        {activePanel === "sources" && (
+                                            <div className="space-y-3">
+                                                <label className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-[var(--pp-border)] rounded-xl cursor-pointer hover:border-indigo-500/50 transition-colors">
+                                                    <Upload size={20} className="mb-2 text-indigo-500" />
+                                                    <span className="text-[10px] text-center">Upload PDF/Docs</span>
+                                                    <input type="file" className="hidden" onChange={(e) => handleUploadClick(e, "sources")} accept=".pdf,.docx" />
+                                                </label>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {files.sources.map((f, i) => (
+                                                        <div key={i} className="pp-badge flex items-center gap-1">
+                                                            <FileText size={10} /> {f.name.slice(0, 10)}...
+                                                            <X size={10} className="cursor-pointer" onClick={() => {
+                                                                setFiles(prev => ({ ...prev, sources: prev.sources.filter((_, idx) => idx !== i) }));
+                                                                addToast("Source removed");
+                                                            }} />
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {activePanel === "template" && (
+                                            <div className="space-y-3">
+                                                <p className="text-[10px] text-[var(--pp-text-dim)]">Preserve design from an existing PPTX.</p>
+                                                <label className="flex items-center gap-2 p-2 bg-indigo-500/20 text-indigo-400 rounded-lg cursor-pointer hover:bg-indigo-500/30 transition-colors text-xs font-medium justify-center">
+                                                    <Palette size={14} /> {files.template ? "Change Template" : "Select PPTX"}
+                                                    <input type="file" className="hidden" onChange={(e) => handleUploadClick(e, "template")} accept=".pptx" />
+                                                </label>
+                                                {files.template && <div className="text-[10px] text-center font-medium text-indigo-500">{files.template.name}</div>}
+                                            </div>
+                                        )}
+
+                                        {activePanel === "customize" && (
+                                            <div className="space-y-4">
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-bold text-[var(--pp-text-dim)]">Slide Count</label>
+                                                    <input
+                                                        type="range" min="3" max="25" value={config.slideCount}
+                                                        onChange={(e) => updateConfig({ slideCount: parseInt(e.target.value) })}
+                                                        className="w-full accent-indigo-500"
+                                                    />
+                                                    <div className="flex justify-between text-[10px] font-medium"><span>3</span> <span>{config.slideCount} slides</span> <span>25</span></div>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-bold text-[var(--pp-text-dim)]">Audience</label>
+                                                    <select
+                                                        value={config.audience}
+                                                        onChange={(e) => updateConfig({ audience: e.target.value })}
+                                                        className="w-full bg-white/5 border border-[var(--pp-border)] rounded-lg p-1 text-[10px]"
+                                                    >
+                                                        <option value="Professional">Professional</option>
+                                                        <option value="Academic">Academic</option>
+                                                        <option value="Creative">Creative</option>
+                                                        <option value="General">General</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {activePanel === "copycat" && (
+                                            <div className="space-y-3">
+                                                <p className="text-[10px] text-[var(--pp-text-dim)]">Mirror slide structure & count from a reference PPTX.</p>
+                                                <label className="flex items-center gap-2 p-2 bg-purple-500/20 text-purple-400 rounded-lg cursor-pointer hover:bg-purple-500/30 transition-colors text-xs font-medium justify-center">
+                                                    <Copy size={14} /> {files.copycat ? "Change Reference" : "Select PPTX"}
+                                                    <input type="file" className="hidden" onChange={(e) => handleUploadClick(e, "copycat")} accept=".pptx" />
+                                                </label>
+                                                {files.copycat && <div className="text-[10px] text-center font-medium text-purple-500">{files.copycat.name}</div>}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </>
+                        )}
                     </motion.aside>
                 )}
             </AnimatePresence>
@@ -327,25 +338,32 @@ const PowerPointTool = () => {
 
             {/* Main Chat Area */}
             <main className="pp-main-content">
-                <header className="flex items-center justify-between p-4 lg:p-5 border-b border-[var(--pp-border)]">
-                    <div className="flex items-center gap-3">
-                        <button onClick={() => setIsMobileMenuOpen(true)} className="lg:hidden p-2 -ml-2 text-[var(--pp-text-dim)]">
+                <header className="flex items-center justify-between p-4 lg:p-5 border-b border-[var(--pp-border)] relative z-20">
+                    <div className="flex items-center gap-3 w-1/2">
+                        <button onClick={() => setIsMobileMenuOpen(true)} className="lg:hidden p-2 -ml-2 text-[var(--pp-text-dim)] flex-shrink-0">
                             <SidebarIcon size={20} />
                         </button>
-                        <motion.div animate={isBusy ? { rotate: 360 } : {}} transition={{ repeat: Infinity, duration: 2, ease: "linear" }}>
+                        <motion.div animate={isBusy ? { rotate: 360 } : {}} transition={{ repeat: Infinity, duration: 2, ease: "linear" }} className="flex-shrink-0">
                             {isBusy ? <Sparkles className="text-indigo-500 w-5 h-5" /> : <Target className="text-indigo-500 w-5 h-5" />}
                         </motion.div>
-                        <span className="font-bold text-sm lg:text-base">Project Workspace</span>
-                        {isBusy && <span className="text-[10px] lg:text-xs text-indigo-500 animate-pulse ml-2 hidden sm:inline">Architecting...</span>}
+                        <span className="font-bold text-sm lg:text-base truncate">{powerPointState.topic || "Project Workspace"}</span>
+                        {isBusy && <span className="text-[10px] lg:text-xs text-indigo-500 animate-pulse ml-2 hidden sm:inline flex-shrink-0">Architecting...</span>}
                     </div>
-                    <div className="flex items-center gap-2 lg:gap-3">
+                    <div className="flex items-center gap-2 lg:gap-3 flex-shrink-0">
                         <button onClick={() => setShowPreview(!showPreview)} className="hidden lg:flex pp-btn-ghost items-center gap-2 text-xs">
                             <Maximize2 size={14} /> {showPreview ? "Hide Preview" : "Show Preview"}
                         </button>
                         <button onClick={() => setIsMobilePreviewOpen(true)} className="lg:hidden p-2 text-indigo-500 bg-indigo-500/10 rounded-lg">
                             <Layout size={20} />
                         </button>
-                        <button className="pp-btn-ghost">
+                        <button
+                            onClick={() => {
+                                setShowHistory(true);
+                                if (!isDesktop) setIsMobileMenuOpen(true);
+                            }}
+                            className="pp-btn-ghost hover:bg-indigo-500/10 hover:text-indigo-500 transition-colors"
+                            title="History"
+                        >
                             <History size={18} />
                         </button>
                     </div>
@@ -363,7 +381,7 @@ const PowerPointTool = () => {
                                 ? "bg-indigo-600 text-white rounded-tr-none shadow-lg shadow-indigo-600/20"
                                 : "bg-white/5 border border-[var(--pp-border)] rounded-tl-none"
                                 }`}>
-                                <p className="text-sm leading-relaxed">{m.content}</p>
+                                <p className="text-sm leading-relaxed whitespace-pre-wrap">{m.content}</p>
                                 {m.actionable && slides.length > 0 && (
                                     <div className="mt-4 flex gap-2">
                                         <button onClick={handleDownload} className="pp-btn-primary flex items-center gap-2 text-xs py-2">
@@ -374,25 +392,41 @@ const PowerPointTool = () => {
                             </div>
                         </motion.div>
                     ))}
+
+                    {isBusy && (
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex justify-start">
+                            <div className="bg-white/5 border border-[var(--pp-border)] rounded-2xl rounded-tl-none p-4 max-w-[80%] flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-full bg-indigo-500/20 text-indigo-400 flex flex-shrink-0 items-center justify-center relative">
+                                    <Sparkles size={18} className="animate-pulse" />
+                                    <div className="absolute inset-0 border-2 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin" />
+                                </div>
+                                <div className="flex flex-col gap-1.5">
+                                    <h3 className="text-sm font-bold text-white m-0 leading-tight">Architecting Presentation</h3>
+                                    <p className="text-[11px] text-[var(--pp-text-dim)] m-0 leading-tight">Extracting insights and formatting slides...</p>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+
                     <div ref={chatEndRef} />
                 </div>
 
-                <div className="pp-input-container p-4 lg:p-6">
+                <div className="pp-input-container p-4 lg:p-6 z-20">
                     <div className="relative group">
                         <textarea
                             value={userInput}
                             onChange={(e) => setUserInput(e.target.value)}
-                            onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), runGeneration())}
+                            onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), handleRunGeneration())}
                             placeholder="Describe your presentation... (e.g., '12-slide summary of the attached PDF')"
                             className="w-full bg-white/5 border border-[var(--pp-border)] rounded-2xl p-4 pr-14 min-h-[80px] lg:min-h-[100px] text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/20 outline-none transition-all group-hover:bg-white/[0.07]"
                         />
                         <div className="absolute bottom-4 right-4 flex items-center gap-2">
                             <label className="pp-btn-ghost p-1.5 cursor-pointer">
                                 <Plus size={20} className="text-[var(--pp-text-dim)]" />
-                                <input type="file" className="hidden" onChange={(e) => handleFileUpload(e, "main")} />
+                                <input type="file" className="hidden" onChange={(e) => handleUploadClick(e, "main")} />
                             </label>
                             <button
-                                onClick={runGeneration}
+                                onClick={handleRunGeneration}
                                 disabled={isBusy || (!userInput.trim() && !extData.mainText)}
                                 className="bg-indigo-600 p-2 rounded-xl text-white hover:bg-indigo-500 disabled:opacity-50 transition-colors shadow-lg shadow-indigo-600/20"
                             >
@@ -411,7 +445,7 @@ const PowerPointTool = () => {
                         animate={isDesktop ? { width: 340, opacity: 1 } : { y: 0 }}
                         exit={isDesktop ? { width: 0, opacity: 0 } : { y: "100%" }}
                         transition={{ duration: 0.2 }}
-                        className={`pp-preview-panel pp-scroll-hide ${isMobilePreviewOpen ? "pp-preview-mobile" : ""}`}
+                        className={`pp-preview-panel pp-scroll-hide ${isMobilePreviewOpen ? "pp-preview-mobile" : ""} relative z-50`}
                     >
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="font-bold flex items-center gap-2">
@@ -439,7 +473,7 @@ const PowerPointTool = () => {
                             </div>
                         </div>
                         {/* ... rest of the preview content ... */}
-                        {slides.length > 0 ? (
+                        {slides.length > 0 && currentSlide ? (
                             <div className="space-y-4">
                                 <div className="pp-slide-preview">
                                     <div className="pp-slide-content">
@@ -514,9 +548,9 @@ const PowerPointTool = () => {
                 </AnimatePresence>
             </div>
 
-            {/* Busy Overlay */}
+            {/* Invisible Overlay to block inputs while busy (but maintains UI visibility) */}
             {isBusy && (
-                <div className="fixed inset-0 bg-black/20 backdrop-blur-[2px] z-[90] cursor-wait flex items-center justify-center" />
+                <div className="fixed inset-0 z-[90] cursor-wait pointer-events-auto bg-transparent" />
             )}
         </div>
     );
