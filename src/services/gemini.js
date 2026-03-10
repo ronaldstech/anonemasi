@@ -7,12 +7,13 @@ const getApiKeys = () => {
 
 const MODELS = [
     "gemini-3.1-flash-lite", // 500 RPD limit - best for long sessions
-    "gemini-2.0-flash",      // Next gen, fast
     "gemini-1.5-flash-latest", // Standard stable
-    "gemini-1.5-flash-8b-latest", // High throughput
     "gemini-1.5-pro-latest", // Quality fallback
     "gemini-2.5-flash",    // Experimental - VERY LOW LIMIT (20 RPD)
-    "gemini-1.0-pro"       // Legacy fallback
+    "gemini-1.0-pro",       // Legacy fallback
+    "gemini-2.5-flash",
+    "gemini-2.5-pro"
+
 ];
 
 let _modelIdx = 0;

@@ -518,6 +518,8 @@ function LandingPage() {
   );
 }
 
+import PowerPointTool from './pages/PowerPointTool';
+
 function App() {
   return (
     <Router>
@@ -529,7 +531,7 @@ function App() {
         {/* Tool routes */}
         <Route path="/dissertation" element={<DissertationTool />} />
         <Route path="/essay" element={<EssayTool />} />
-        <Route path="/powerpoint" element={<div className="min-h-screen p-20 text-center text-2xl text-[var(--text-primary)] bg-[var(--bg-color)]">PowerPoint Tool Coming Soon</div>} />
+        <Route path="/powerpoint" element={<PowerPointTool />} />
       </Routes>
     </Router>
   );
