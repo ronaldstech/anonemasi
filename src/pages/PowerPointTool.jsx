@@ -187,7 +187,7 @@ const PowerPointTool = () => {
                             <div className="flex flex-col h-full">
                                 <div className="flex items-center justify-between mb-6">
                                     <div className="flex items-center gap-2">
-                                        <button onClick={() => setShowHistory(false)} className="p-1 hover:bg-white/10 rounded-lg transition-colors text-[var(--pp-text-dim)]">
+                                    <button onClick={() => navigate('/powerpoint')} className="p-1 hover:bg-white/10 rounded-lg transition-colors text-[var(--pp-text-dim)]">
                                             <ChevronLeft size={20} />
                                         </button>
                                         <h2 className="font-bold text-lg">History</h2>

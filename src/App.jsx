@@ -24,31 +24,43 @@ import Signup from './pages/Signup';
 import Profile from './pages/Profile';
 import DissertationTool from './pages/DissertationTool';
 import EssayTool from './pages/EssayTool';
+import ToolLandingPage from './pages/ToolLandingPage';
+import ScrollToTop from './components/common/ScrollToTop';
 
 const tools = [
   {
     id: 'dissertation',
     title: 'Dissertation Pro',
     description: 'Expert guidance and structuring for your final year dissertation.',
+    longDescription: 'The comprehensive companion for your final year project. Dissertation Pro helps you generate viable research topics, plan out every chapter, and draft thousands of words of high-quality research content.',
+    features: ['Full chapter planning', 'Academic research synthesis', 'Unlimited Word & PDF exports'],
     icon: <BookOpen className="w-8 h-8 text-indigo-400 group-hover:text-white transition-colors duration-300" />,
     color: 'from-indigo-500 to-indigo-600',
-    link: '/dissertation'
+    link: '/dissertation',
+    price: '10,000',
+    priceNotice: 'One-time cost per dissertation project. Unlock all chapters instantly.'
   },
   {
     id: 'essay',
     title: 'Essay Weaver',
     description: 'Craft compelling essays with advanced AI-assisted writing tools.',
+    longDescription: 'Essay Weaver is designed to take the stress out of academic writing. From analyzing complex assignment prompts to finding high-quality academic sources and drafting perfectly structured paragraphs with APA 7th citations.',
+    features: ['Source extraction from millions of papers', 'APA 7th citation formatting', 'Anti-AI detection optimization'],
     icon: <FileText className="w-8 h-8 text-purple-400 group-hover:text-white transition-colors duration-300" />,
     color: 'from-purple-500 to-purple-600',
-    link: '/essay'
+    link: '/essay',
+    price: '2,500'
   },
   {
     id: 'powerpoint',
     title: 'Presentation Gen',
     description: 'Generate stunning, structured PowerPoint presentations instantly.',
+    longDescription: 'Transform your documents or ideas into professional slide decks in seconds. Presentation Gen handles the structure, content, and layout so you can focus on your delivery.',
+    features: ['Convert PDF/Word to Slides', 'Dynamic slide layouts', 'Professional academic styling'],
     icon: <Presentation className="w-8 h-8 text-pink-400 group-hover:text-white transition-colors duration-300" />,
     color: 'from-pink-500 to-pink-600',
-    link: '/powerpoint'
+    link: '/powerpoint',
+    price: '1,000'
   }
 ];
 
@@ -523,15 +535,19 @@ import PowerPointTool from './pages/PowerPointTool';
 function App() {
   return (
     <Router>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/profile" element={<Profile />} />
         {/* Tool routes */}
-        <Route path="/dissertation" element={<DissertationTool />} />
-        <Route path="/essay" element={<EssayTool />} />
-        <Route path="/powerpoint" element={<PowerPointTool />} />
+        <Route path="/dissertation" element={<ToolLandingPage tool={tools.find(t => t.id === 'dissertation')} />} />
+        <Route path="/dissertation/app" element={<DissertationTool />} />
+        <Route path="/essay" element={<ToolLandingPage tool={tools.find(t => t.id === 'essay')} />} />
+        <Route path="/essay/app" element={<EssayTool />} />
+        <Route path="/powerpoint" element={<ToolLandingPage tool={tools.find(t => t.id === 'powerpoint')} />} />
+        <Route path="/powerpoint/app" element={<PowerPointTool />} />
       </Routes>
     </Router>
   );

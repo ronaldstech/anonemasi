@@ -76,7 +76,7 @@ const DissertationTool = () => {
             <Sidebar
                 dissState={dissState}
                 savedDissertations={savedDissertations}
-                onBack={() => navigate('/')}
+                onBack={() => navigate('/dissertation')}
                 onLoadDissertation={loadDissertation}
                 onStartNew={startNewDissertation}
                 isOpen={isSidebarOpen}

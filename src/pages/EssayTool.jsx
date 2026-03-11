@@ -61,7 +61,7 @@ const EssayTool = () => {
             <Sidebar
                 essayState={essayState}
                 savedEssays={savedEssays}
-                onBack={() => navigate('/')}
+                onBack={() => navigate('/essay')}
                 onLoadEssay={loadEssay}
                 onStartNew={startNewEssay}
                 isOpen={isSidebarOpen}
