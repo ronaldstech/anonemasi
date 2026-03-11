@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { callAI, safeJSON } from '../services/ai';
 import { db } from '../firebase';
-import { collection, addDoc, updateDoc, doc, getDoc, query, where, getDocs, Timestamp, orderBy, deleteDoc } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, doc, getDoc, query, where, getDocs, Timestamp, orderBy, deleteDoc, increment } from 'firebase/firestore';
 import { buildWordDoc, triggerDownload } from '../utils/exportUtils';
 import { useAuth } from '../context/AuthContext';
 
@@ -198,7 +198,27 @@ export const useEssay = () => {
 
     // AI Step 1: Analyze Requirements
     const performAnalysis = async (requirements) => {
-        if (!requirements.trim()) return;
+        if (!requirements.trim()) return { success: false, message: "Please provide requirements." };
+
+        // Check if user has exceeded their free tier and has no credits
+        if (currentUser) {
+            try {
+                const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    const essaysGenerated = userData.essaysGenerated || 0;
+                    const powerpointsGenerated = userData.powerpointsGenerated || 0;
+                    const totalGenerated = essaysGenerated + powerpointsGenerated;
+                    const credits = userData.essayCredits || 0;
+                    
+                    if (totalGenerated >= 1 && credits <= 0) {
+                        return { success: false, requirePayment: true };
+                    }
+                }
+            } catch (err) {
+                console.error("Error checking quota:", err);
+            }
+        }
 
         setLoading(true);
         setEssayState(prev => ({ ...prev, requirements }));
@@ -238,8 +258,8 @@ Be thorough and extract ALL key requirements.`;
                     : 'standard'
             };
 
-            await saveToFirestore(newState);
-            setEssayState(newState);
+            const savedState = await saveToFirestore(newState);
+            setEssayState(savedState);
 
             removeMessage(thinkingId);
             addMessage({
@@ -249,10 +269,29 @@ Be thorough and extract ALL key requirements.`;
                 content: `Analysis complete. Topic: ${newState.topic}`
             });
 
+            // Update user quotas upon successful analysis start
+            if (currentUser) {
+                try {
+                    const userRef = doc(db, "users", currentUser.uid);
+                    const userSnap = await getDoc(userRef);
+                    if (userSnap.exists()) {
+                        const credits = userSnap.data().essayCredits || 0;
+                        await updateDoc(userRef, {
+                            essaysGenerated: increment(1),
+                            ...(credits > 0 ? { essayCredits: increment(-1) } : {})
+                        });
+                    }
+                } catch (err) {
+                    console.error("Error updating user quota:", err);
+                }
+            }
+
+            return { success: true };
         } catch (error) {
             console.error("Analysis error:", error);
             removeMessage(thinkingId);
             addMessage({ role: 'ai', type: 'error', content: `Analysis failed: ${error.message}` });
+            return { success: false, message: error.message };
         } finally {
             setLoading(false);
         }
@@ -327,8 +366,8 @@ Return ONLY the JSON array, nothing else.`;
 
             const finalSources = parsedSources.slice(0, essayState.refs);
             const newState = { ...essayState, sources: finalSources };
-            await saveToFirestore(newState);
-            setEssayState(newState);
+            const savedState = await saveToFirestore(newState);
+            setEssayState(savedState);
 
             removeMessage(thinkingId);
             addMessage({
@@ -417,8 +456,8 @@ Return JSON array (${essayState.paras} items):
             const plan = safeJSON(resp);
 
             const newState = { ...essayState, plan };
-            await saveToFirestore(newState);
-            setEssayState(newState);
+            const savedState = await saveToFirestore(newState);
+            setEssayState(savedState);
 
             removeMessage(thinkingId);
             addMessage({
@@ -576,8 +615,8 @@ Write naturally and engagingly as ONE SINGLE CONTINUOUS PARAGRAPH.`;
             const references = refLines.join('\n');
 
             const newState = { ...essayState, drafts: draftsMap, references };
-            await saveToFirestore(newState);
-            setEssayState(newState);
+            const savedState = await saveToFirestore(newState);
+            setEssayState(savedState);
 
             addMessage({
                 role: 'ai',

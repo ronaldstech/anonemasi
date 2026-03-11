@@ -6,7 +6,7 @@ import { useEssay } from '../hooks/useEssay';
 import Sidebar from '../components/essay/Sidebar';
 import ChatThread from '../components/essay/ChatThread';
 import InputPanel from '../components/essay/InputPanel';
-import SubscriptionModal from '../components/dissertation/Modals/SubscriptionModal'; // Reusing for now
+import PaymentModal from '../components/essay/PaymentModal';
 
 const EssayTool = () => {
     const navigate = useNavigate();
@@ -29,7 +29,8 @@ const EssayTool = () => {
     } = useEssay();
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const [isSubscriptionOpen, setIsSubscriptionOpen] = useState(false);
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [pendingRequirements, setPendingRequirements] = useState("");
 
     useEffect(() => {
         if (!currentUser) {
@@ -65,7 +66,7 @@ const EssayTool = () => {
                 onStartNew={startNewEssay}
                 isOpen={isSidebarOpen}
                 onClose={() => setIsSidebarOpen(false)}
-                onUpgradeClick={() => setIsSubscriptionOpen(true)}
+                onUpgradeClick={() => setShowPaymentModal(true)}
             />
 
             {/* Main Workspace */}
@@ -130,9 +131,13 @@ const EssayTool = () => {
                 {/* Input Area */}
                 <InputPanel
                     loading={loading}
-                    onSend={(val) => {
+                    onSend={async (val) => {
                         if (!essayState.topic) {
-                            performAnalysis(val);
+                            const res = await performAnalysis(val);
+                            if (res && res.requirePayment) {
+                                setPendingRequirements(val);
+                                setShowPaymentModal(true);
+                            }
                         } else {
                             addMessage({ role: 'user', content: val });
                             // The AI doesn't actively converse during the pipeline unless modifying plan,
@@ -143,14 +148,18 @@ const EssayTool = () => {
                 />
             </main>
 
-            {/* We reuse the Dissertation subscription modal but it needs to be made generic later if it relies heavily on dissertationId */}
-            <SubscriptionModal
-                isOpen={isSubscriptionOpen}
-                onClose={() => setIsSubscriptionOpen(false)}
-                onUpgrade={() => { }} // Stub
+            <PaymentModal
+                isOpen={showPaymentModal}
+                onClose={() => setShowPaymentModal(false)}
+                onSuccess={async () => {
+                    setShowPaymentModal(false);
+                    if (pendingRequirements) {
+                        await performAnalysis(pendingRequirements);
+                        setPendingRequirements("");
+                    }
+                }}
                 userName={userData?.name}
                 userEmail={currentUser?.email}
-                dissertationId={essayState.id}
                 userId={currentUser?.uid}
             />
         </div>

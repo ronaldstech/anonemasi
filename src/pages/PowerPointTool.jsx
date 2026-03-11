@@ -29,6 +29,8 @@ import "./PowerPointTool.css";
 
 import { usePowerPoint } from "../hooks/usePowerPoint";
 import { buildFreshPptx, buildTemplatePptx } from "../services/powerpointService";
+import PaymentModal from "../components/powerpoint/PaymentModal";
+import { useAuth } from "../context/AuthContext";
 
 const PowerPointTool = () => {
     // Custom Hook State
@@ -47,8 +49,11 @@ const PowerPointTool = () => {
         handleFileUpload
     } = usePowerPoint();
 
+    const { currentUser, userData } = useAuth();
+
     // UI State
     const [activePanel, setActivePanel] = useState("sources"); // sources, template, customize, copycat
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [showHistory, setShowHistory] = useState(false);
     const [showPreview, setShowPreview] = useState(true);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -112,6 +117,25 @@ const PowerPointTool = () => {
         }
 
         const inputToRun = userInput;
+        setUserInput("");
+        const res = await runGeneration(inputToRun);
+        if (res.success) {
+            setCurrentSlideIdx(0);
+            addToast("Slides generated!", "success");
+        } else if (res.requirePayment) {
+            setUserInput(inputToRun);
+            setShowPaymentModal(true);
+        } else {
+            setUserInput(inputToRun); // Restore input on error to not lose text
+            addToast(res.message, "error");
+        }
+    };
+
+    const handlePaymentSuccess = async () => {
+        setShowPaymentModal(false);
+        // The modal waits 3.5 seconds before calling this, so we can run generation.
+        const inputToRun = userInput;
+        if (!inputToRun && !extData.mainText) return;
         setUserInput("");
         const res = await runGeneration(inputToRun);
         if (res.success) {
@@ -552,6 +576,15 @@ const PowerPointTool = () => {
             {isBusy && (
                 <div className="fixed inset-0 z-[90] cursor-wait pointer-events-auto bg-transparent" />
             )}
+
+            <PaymentModal
+                isOpen={showPaymentModal}
+                onClose={() => setShowPaymentModal(false)}
+                onSuccess={handlePaymentSuccess}
+                userName={userData?.name || currentUser?.displayName || ""}
+                userEmail={currentUser?.email || ""}
+                userId={currentUser?.uid || ""}
+            />
         </div>
     );
 };

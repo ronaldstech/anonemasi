@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { db } from '../firebase';
-import { collection, addDoc, updateDoc, doc, getDoc, query, where, getDocs, Timestamp, orderBy, deleteDoc } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, doc, getDoc, query, where, getDocs, Timestamp, orderBy, deleteDoc, increment } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
 import { extractDocText, extractPptxData, generateSlideData, sanitiseSlides } from '../services/powerpointService';
 
@@ -203,6 +203,26 @@ export const usePowerPoint = () => {
             return { success: false, message: "Please provide a topic or upload a document" };
         }
 
+        // Check if user has exceeded their free tier and has no credits
+        if (currentUser) {
+            try {
+                const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    const powerpointsGenerated = userData.powerpointsGenerated || 0;
+                    const essaysGenerated = userData.essaysGenerated || 0;
+                    const totalGenerated = powerpointsGenerated + essaysGenerated;
+                    const credits = userData.powerpointCredits || 0;
+                    
+                    if (totalGenerated >= 1 && credits <= 0) {
+                        return { success: false, requirePayment: true };
+                    }
+                }
+            } catch (err) {
+                console.error("Error checking quota:", err);
+            }
+        }
+
         setLoading(true);
         const userMsg = userInput.trim();
 
@@ -229,9 +249,25 @@ export const usePowerPoint = () => {
                 slides: cleanSlides
             };
 
-            setPowerPointState(newState);
-            // Force an immediate save upon generation
-            await saveToFirestore(newState);
+            const savedState = await saveToFirestore(newState);
+            setPowerPointState(savedState);
+
+            // Update user quotas
+            if (currentUser) {
+                try {
+                    const userRef = doc(db, "users", currentUser.uid);
+                    const userSnap = await getDoc(userRef);
+                    if (userSnap.exists()) {
+                        const credits = userSnap.data().powerpointCredits || 0;
+                        await updateDoc(userRef, {
+                            powerpointsGenerated: increment(1),
+                            ...(credits > 0 ? { powerpointCredits: increment(-1) } : {})
+                        });
+                    }
+                } catch (err) {
+                    console.error("Error updating user quota:", err);
+                }
+            }
 
             setMessages(prev => [...prev, {
                 role: "assistant",

@@ -92,6 +92,12 @@ export const sanitiseSlides = (slides) => {
                 s.subtitle = titleObj.subtitle;
             }
         }
+        
+        // Firestore DOES NOT SUPPORT nested arrays, we must stringify table rows
+        if (s.type === "table" && Array.isArray(s.table_rows)) {
+            s.table_rows = s.table_rows.map(row => Array.isArray(row) ? JSON.stringify(row) : row);
+        }
+
         return s;
     }).filter(s => {
         if (s.type === "title") return true;
@@ -164,6 +170,11 @@ export const buildFreshPptx = async (slides, theme) => {
             else if (sl.bullets?.length) {
                 const l = computeBulletLayout(sl.bullets, AVAIL_H); let y = CTOP;
                 sl.bullets.forEach((b, i) => { s.addText("• " + b, { x: 0.5, y, w: 9, h: l.heights[i], fontSize: l.fontSize }); y += l.heights[i]; });
+            }
+            else if (sl.type === "table" && sl.table_rows) {
+                // Parse stringified rows back to arrays for PPTX generation
+                const parsedRows = sl.table_rows.map(row => typeof row === 'string' ? JSON.parse(row) : row);
+                s.addTable([sl.table_headers || [], ...parsedRows], { x: 0.5, y: 1.5, w: 9, colW: [3, 3, 3] });
             }
         }
     }

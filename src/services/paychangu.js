@@ -120,17 +120,19 @@ export function normalizePhone(phone) {
  * Save a pending transaction to Firestore.
  * @returns {string} Firestore document ID
  */
-async function saveTransaction({ chargeId, dissertationId, userId, phone, operator, email, firstName, lastName }) {
+async function saveTransaction({ chargeId, dissertationId, resourceType, resourceId, userId, phone, operator, email, firstName, lastName, amount }) {
     const docRef = await addDoc(collection(db, 'transactions'), {
         chargeId,
-        dissertationId,
+        dissertationId: dissertationId || null,
+        resourceType: resourceType || (dissertationId ? 'dissertation' : 'unknown'),
+        resourceId: resourceId || dissertationId || null,
         userId,
         phone,
         operator,
         email,
         firstName,
         lastName,
-        amount: 10000,
+        amount: amount || 10000,
         currency: 'MWK',
         status: 'pending',
         createdAt: Timestamp.now(),
@@ -166,6 +168,51 @@ export async function fetchDissertationTransactions(dissertationId) {
         return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
     } catch (err) {
         console.warn('[PayChangu] Failed to fetch transactions:', err.message);
+        return [];
+    }
+}
+
+/**
+ * Fetch all transactions for a specific user for PowerPoint generations.
+ * @param {string} userId
+ * @returns {Promise<Array>}
+ */
+export async function fetchPowerPointTransactions(userId) {
+    if (!userId) return [];
+    try {
+        const q = query(
+            collection(db, 'transactions'),
+            where('userId', '==', userId),
+            where('resourceType', '==', 'powerpoint')
+        );
+        const snapshot = await getDocs(q);
+        const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        // Sort client-side to avoid needing a Firestore composite index for this specific query
+        return docs.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
+    } catch (err) {
+        console.warn('[PayChangu] Failed to fetch PowerPoint transactions:', err.message);
+        return [];
+    }
+}
+
+/**
+ * Fetch all transactions for a specific user for Essay generations.
+ * @param {string} userId
+ * @returns {Promise<Array>}
+ */
+export async function fetchEssayTransactions(userId) {
+    if (!userId) return [];
+    try {
+        const q = query(
+            collection(db, 'transactions'),
+            where('userId', '==', userId),
+            where('resourceType', '==', 'essay')
+        );
+        const snapshot = await getDocs(q);
+        const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        return docs.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
+    } catch (err) {
+        console.warn('[PayChangu] Failed to fetch Essay transactions:', err.message);
         return [];
     }
 }
@@ -268,7 +315,7 @@ async function pollPaymentStatus(chargeId, transactionDocId, onStatusUpdate) {
  * 3. Poll for confirmation
  * 4. Returns 'success' | 'failed' | 'timeout'
  */
-export async function processPayment({ phone, email, firstName, lastName, operator, dissertationId, userId, onStatusUpdate }) {
+export async function processPayment({ phone, email, firstName, lastName, operator, dissertationId, resourceType, resourceId, userId, amount, onStatusUpdate }) {
     const secretKey = import.meta.env.VITE_PAYCHANGU_SECRET_KEY;
     if (!secretKey) throw new Error('PayChangu secret key is not configured.');
 
@@ -295,7 +342,7 @@ export async function processPayment({ phone, email, firstName, lastName, operat
             email,
             first_name: firstName,
             last_name: lastName,
-            amount: '10000',
+            amount: (amount || 10000).toString(),
             charge_id: chargeId
         })
     });
@@ -310,8 +357,8 @@ export async function processPayment({ phone, email, firstName, lastName, operat
 
     // 2. Log to Firestore
     const transactionDocId = await saveTransaction({
-        chargeId, dissertationId, userId,
-        phone: normalizedPhone, operator, email, firstName, lastName
+        chargeId, dissertationId, resourceType, resourceId, userId,
+        phone: normalizedPhone, operator, email, firstName, lastName, amount: amount || 10000
     });
 
     // 3. Poll
