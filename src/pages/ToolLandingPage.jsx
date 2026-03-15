@@ -160,19 +160,19 @@ const ToolLandingPage = ({ tool }) => {
                   <div className="px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-500 text-[10px] font-bold uppercase tracking-wider">Most Flexible</div>
                 </div>
                 <div className="flex items-center justify-between">
-                  <h3 className="text-3xl font-bold font-outfit">Pay-as-you-go</h3>
+                  <h3 className="text-3xl font-bold font-outfit">Pay With Tokens</h3>
                   <div className="flex flex-col items-end">
                     <div className="flex items-baseline gap-1">
                       <span className={`text-5xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r ${tool.color}`}>
                         {tool.price}
                       </span>
-                      <span className="text-sm font-bold text-[var(--text-secondary)]">MWK</span>
+                      <span className="text-sm font-bold text-[var(--text-secondary)]">Tokens</span>
                     </div>
                     <span className="text-[10px] font-medium text-[var(--text-secondary)]">Per Generation</span>
                   </div>
                 </div>
                 <p className="text-sm text-[var(--text-secondary)] mt-6 leading-relaxed bg-white/50 dark:bg-white/5 p-4 rounded-2xl border border-[var(--glass-border)]">
-                  {tool.priceNotice || "Access complete power without recurring costs. Simply pay for what you need, when you need it."}
+                  {tool.priceNotice || "Access complete power by using your token balance. Simply recharge when you need more."}
                 </p>
               </div>
 
@@ -233,7 +233,7 @@ const ToolLandingPage = ({ tool }) => {
                 <div className="text-sm font-bold text-indigo-600 dark:text-indigo-400 mb-1">Risk-Free Trial</div>
                 <div className="text-[11px] text-[var(--text-secondary)] leading-relaxed font-medium">
                   Your first generation is completely <span className="text-indigo-500 dark:text-indigo-400 font-bold">FREE</span>. 
-                  Experience the magic before you commit.
+                  Experience the magic before you buy tokens.
                 </div>
               </motion.div>
             </div>

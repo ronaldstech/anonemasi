@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from './firebase';
 import {
-  BookOpen,
+    BookOpen,
   FileText,
   Presentation,
   Sparkles,
@@ -14,7 +16,8 @@ import {
   Clock,
   CheckCircle2,
   Menu,
-  X
+  X,
+  Coins
 } from 'lucide-react';
 
 import { useAuth } from './context/AuthContext';
@@ -38,7 +41,7 @@ const tools = [
     color: 'from-indigo-500 to-indigo-600',
     link: '/dissertation',
     price: '10,000',
-    priceNotice: 'One-time cost per dissertation project. Unlock all chapters instantly.'
+    priceNotice: 'One-time cost per dissertation project. Unlock all chapters instantly with tokens.'
   },
   {
     id: 'essay',
@@ -73,6 +76,7 @@ const benefits = [
 function LandingPage() {
   const { currentUser, logout } = useAuth();
   const [isLoaded, setIsLoaded] = useState(false);
+  const [userTokens, setUserTokens] = useState(0);
   const [darkMode, setDarkMode] = useState(() => {
     if (typeof window !== 'undefined') {
       const savedTheme = localStorage.getItem('theme');
@@ -88,6 +92,22 @@ function LandingPage() {
   useEffect(() => {
     setIsLoaded(true);
   }, []);
+
+  // Real-time token listener for Navbar
+  useEffect(() => {
+    if (!currentUser) {
+      setUserTokens(0);
+      return;
+    }
+
+    const unsub = onSnapshot(doc(db, 'users', currentUser.uid), (doc) => {
+      if (doc.exists()) {
+        setUserTokens(doc.data().tokens || 0);
+      }
+    });
+
+    return () => unsub();
+  }, [currentUser]);
 
   useEffect(() => {
     if (darkMode) {
@@ -161,6 +181,8 @@ function LandingPage() {
             <a href="#features" className="hover:text-[var(--text-primary)] transition-colors">Features</a>
             <a href="#benefits" className="hover:text-[var(--text-primary)] transition-colors">Benefits</a>
 
+            <div className="h-6 w-px bg-[var(--glass-border)] mx-2"></div>
+
             <button
               onClick={toggleTheme}
               className="p-2 rounded-full hover:bg-[var(--glass-border)] transition-colors text-[var(--text-primary)]"
@@ -178,9 +200,17 @@ function LandingPage() {
                 )}
               </AnimatePresence>
             </button>
+
             {currentUser ? (
               <>
-                <Link to="/dashboard" className="px-3 hover:text-[var(--text-primary)] transition-colors">Dashboard</Link>
+                {/* Token Badge */}
+                <Link to="/profile" className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 font-bold text-xs hover:scale-105 transition-all shadow-sm">
+                  <Coins size={14} className="animate-pulse" />
+                  <span>{userTokens.toLocaleString()}</span>
+                </Link>
+
+                <Link to="/profile" className="px-3 hover:text-[var(--text-primary)] transition-colors text-xs font-bold uppercase tracking-wider">Profile</Link>
+                
                 <div className="relative group p-2">
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 p-0.5 cursor-pointer">
                     <div className="w-full h-full bg-[var(--bg-color)] rounded-full flex items-center justify-center text-xs font-bold font-outfit text-[var(--accent-primary)]">
@@ -247,6 +277,13 @@ function LandingPage() {
                 <div className="h-px w-full bg-[var(--glass-border)] my-2"></div>
                 {currentUser ? (
                   <>
+                    <div className="flex flex-col items-center gap-2 mb-4">
+                      <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 font-bold text-sm shadow-sm">
+                        <Coins size={16} className="animate-pulse" />
+                        <span>{userTokens.toLocaleString()} Tokens</span>
+                      </div>
+                      <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)} className="text-xs font-bold text-indigo-500 uppercase tracking-widest">Get more tokens</Link>
+                    </div>
                     <Link to="/profile" onClick={() => setIsMobileMenuOpen(false)} className="btn-secondary w-full justify-center mb-2">Profile</Link>
                     <button onClick={() => { logout(); setIsMobileMenuOpen(false); }} className="btn-secondary w-full justify-center text-red-500 border-red-500/30 hover:bg-red-500/10">Sign out</button>
                   </>

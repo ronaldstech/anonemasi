@@ -2,9 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     X, Check, CreditCard, Sparkles, ShieldCheck, Zap, Trophy, Phone,
-    ArrowLeft, Loader2, AlertCircle, Clock, RefreshCw, History, ChevronRight
+    ArrowLeft, Loader2, AlertCircle, Clock, RefreshCw, History, ChevronRight, Coins
 } from 'lucide-react';
 import { detectOperator, processPayment, fetchEssayTransactions, reverifyTransaction, OPERATORS, fetchOperators } from '../../services/paychangu';
+import { hasSufficientBalance, deductTokens } from '../../services/tokenService';
+import BuyTokensModal from '../modals/BuyTokensModal';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../../firebase';
 
 // ── Operator styles ──────────────────────────────────────────────────────────
 const OP_STYLE = {
@@ -33,7 +37,7 @@ const FEATURES = [
 ];
 
 const HDR = {
-    overview: { title: 'Generate Essay', sub: 'Unlock This Generation' },
+    overview: { title: 'Generate Essay', sub: 'Unlock with Tokens' },
     history: { title: 'Payment History', sub: 'Past transactions for your account' },
     payment: { title: 'Mobile Money Payment', sub: 'Airtel Money or TNM Mpamba' },
     processing: { title: 'Verifying Payment…', sub: 'Approve the prompt on your phone' },
@@ -57,6 +61,22 @@ const PaymentModal = ({ isOpen, onClose, onSuccess, userName, userEmail, userId 
     const [verifyingId, setVerifyingId] = useState(null);
     // Per-transaction feedback: { [txnId]: { status, message, logs } }
     const [txnFeedback, setTxnFeedback] = useState({});
+    
+    // Token specific state
+    const [userTokens, setUserTokens] = useState(0);
+    const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
+    const [isDeducting, setIsDeducting] = useState(false);
+
+    // Listen to user token balance in real-time
+    useEffect(() => {
+        if (!userId) return;
+        const unsub = onSnapshot(doc(db, 'users', userId), (doc) => {
+            if (doc.exists()) {
+                setUserTokens(doc.data().tokens || 0);
+            }
+        });
+        return () => unsub();
+    }, [userId]);
 
     // Load history whenever the history step is shown
     useEffect(() => {
@@ -83,6 +103,33 @@ const PaymentModal = ({ isOpen, onClose, onSuccess, userName, userEmail, userId 
         const val = e.target.value.replace(/[^\d]/g, '').slice(0, 10);
         setPhone(val);
         setDetectedOp(detectOperator(val));
+    };
+
+    const handleTokenPayment = async () => {
+        if (userTokens < 2500) {
+            setIsBuyModalOpen(true);
+            return;
+        }
+
+        setIsDeducting(true);
+        setErrorMsg('');
+
+        try {
+            const success = await deductTokens(userId, 2500, 'Essay Generation');
+            if (success) {
+                await onSuccess();
+                setStep('success');
+                setTimeout(() => handleClose(), 3500);
+            } else {
+                setErrorMsg('Failed to deduct tokens. Please try again.');
+                setStep('error');
+            }
+        } catch (err) {
+            setErrorMsg(err.message || 'An unexpected error occurred.');
+            setStep('error');
+        } finally {
+            setIsDeducting(false);
+        }
     };
 
     const handlePayment = async () => {
@@ -217,18 +264,29 @@ const PaymentModal = ({ isOpen, onClose, onSuccess, userName, userEmail, userId 
                             <div className="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-500/5 border border-indigo-100 dark:border-indigo-500/20 mb-5">
                                 <div className="flex items-center justify-between mb-0.5">
                                     <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">One-time · 1 Essay</span>
-                                    <span className="text-[10px] text-[var(--text-secondary)] italic">Instant Unlock</span>
+                                    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px] font-bold">
+                                        <Coins size={10} />
+                                        Balance: {userTokens.toLocaleString()}
+                                    </div>
                                 </div>
                                 <div className="flex items-baseline gap-1">
                                     <span className="text-3xl font-black text-indigo-700 dark:text-indigo-300">2,500</span>
-                                    <span className="text-base font-bold text-indigo-600/60 dark:text-indigo-400/60">MWK</span>
+                                    <span className="text-base font-bold text-indigo-600/60 dark:text-indigo-400/60 uppercase">Tokens</span>
                                 </div>
                             </div>
 
-                            <button onClick={() => setStep('payment')}
+                            <button 
+                                onClick={handleTokenPayment}
+                                disabled={isDeducting}
                                 className="w-full py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-xl shadow-indigo-600/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 text-sm mb-3">
-                                <CreditCard size={15} />
-                                Pay with Mobile Money
+                                {isDeducting ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                                {userTokens >= 2500 ? 'Unlock Essay' : 'Get More Tokens'}
+                            </button>
+
+                            <button onClick={() => setStep('payment')}
+                                className="w-full py-2.5 rounded-2xl border border-dashed border-zinc-200 dark:border-white/10 hover:bg-zinc-50 dark:hover:bg-white/5 transition-all flex items-center justify-center gap-2 text-xs text-[var(--text-secondary)] mb-3">
+                                <CreditCard size={13} />
+                                Pay directly with Mobile Money
                             </button>
 
                             {/* History shortcut */}
@@ -508,6 +566,17 @@ const PaymentModal = ({ isOpen, onClose, onSuccess, userName, userEmail, userId 
                     )}
                 </motion.div>
             </div>
+
+            <BuyTokensModal
+                isOpen={isBuyModalOpen}
+                onClose={() => setIsBuyModalOpen(false)}
+                userName={userName}
+                userEmail={userEmail}
+                userId={userId}
+                onSuccess={() => {
+                    setIsBuyModalOpen(false);
+                }}
+            />
         </AnimatePresence>
     );
 };

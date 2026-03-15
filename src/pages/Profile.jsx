@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { GraduationCap, ArrowRight, User, Mail, Save, LogOut, ArrowLeft, Loader2 } from 'lucide-react';
+import { GraduationCap, ArrowRight, User, Mail, Save, LogOut, ArrowLeft, Loader2, Coins, Plus } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
+import BuyTokensModal from '../components/modals/BuyTokensModal';
 
 export default function Profile() {
     const { currentUser, logout } = useAuth();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [userData, setUserData] = useState({ name: '', email: '' });
+    const [userData, setUserData] = useState({ name: '', email: '', tokens: 0 });
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
+    const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
 
     // Protect route
     useEffect(() => {
@@ -22,30 +24,24 @@ export default function Profile() {
         }
     }, [currentUser, navigate]);
 
-    // Fetch user data from Firestore
+    // Fetch user data from Firestore with real-time updates for tokens
     useEffect(() => {
-        async function fetchUserData() {
-            if (currentUser) {
-                try {
-                    const docRef = doc(db, 'users', currentUser.uid);
-                    const docSnap = await getDoc(docRef);
+        if (!currentUser) return;
 
-                    if (docSnap.exists()) {
-                        setUserData(docSnap.data());
-                    } else {
-                        // Fallback to auth object if not in Firestore (e.g. older Google signins)
-                        setUserData({ name: currentUser.displayName || '', email: currentUser.email || '' });
-                    }
-                } catch (err) {
-                    console.error("Error fetching user data:", err);
-                    setError("Failed to load profile data.");
-                } finally {
-                    setLoading(false);
-                }
+        const unsub = onSnapshot(doc(db, 'users', currentUser.uid), (doc) => {
+            if (doc.exists()) {
+                setUserData(prev => ({ ...prev, ...doc.data() }));
+            } else {
+                setUserData({ name: currentUser.displayName || '', email: currentUser.email || '', tokens: 0 });
             }
-        }
+            setLoading(false);
+        }, (err) => {
+            console.error("Error fetching user data:", err);
+            setError("Failed to load profile data.");
+            setLoading(false);
+        });
 
-        fetchUserData();
+        return () => unsub();
     }, [currentUser]);
 
     const handleSave = async (e) => {
@@ -148,6 +144,29 @@ export default function Profile() {
                         <p className="text-[var(--text-secondary)]">Manage your account settings</p>
                     </motion.div>
 
+                    {/* Token Balance Card */}
+                    <motion.div variants={itemVariants} className="mb-8 p-6 rounded-3xl bg-gradient-to-br from-indigo-600 to-purple-700 text-white shadow-xl shadow-indigo-600/20 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-4 opacity-10">
+                            <Coins size={80} />
+                        </div>
+                        <div className="relative z-10 flex items-center justify-between">
+                            <div>
+                                <p className="text-xs font-bold uppercase tracking-widest opacity-70 mb-1">Your Balance</p>
+                                <div className="flex items-baseline gap-2">
+                                    <span className="text-4xl font-black tabular-nums">{(userData.tokens || 0).toLocaleString()}</span>
+                                    <span className="text-sm font-bold opacity-80 uppercase">Tokens</span>
+                                </div>
+                            </div>
+                            <button 
+                                onClick={() => setIsBuyModalOpen(true)}
+                                className="w-12 h-12 rounded-2xl bg-white/20 hover:bg-white/30 backdrop-blur-md flex items-center justify-center transition-all active:scale-95 group shadow-lg"
+                                title="Buy More Tokens"
+                            >
+                                <Plus size={24} className="group-hover:rotate-90 transition-transform duration-300" />
+                            </button>
+                        </div>
+                    </motion.div>
+
                     {error && (
                         <motion.div variants={itemVariants} className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-sm text-center font-medium">
                             {error}
@@ -213,6 +232,17 @@ export default function Profile() {
                     )}
                 </div>
             </motion.div>
+            
+            <BuyTokensModal
+                isOpen={isBuyModalOpen}
+                onClose={() => setIsBuyModalOpen(false)}
+                userName={userData.name}
+                userEmail={userData.email}
+                userId={currentUser.uid}
+                onSuccess={() => {
+                    setIsBuyModalOpen(false);
+                }}
+            />
         </div>
     );
 }

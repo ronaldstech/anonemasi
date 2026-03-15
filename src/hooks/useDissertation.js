@@ -331,7 +331,7 @@ export const useDissertation = () => {
                 role: 'ai',
                 type: 'upgrade_required',
                 chapterNum: chapterNum,
-                content: `This project is currently on the Free Plan. To unlock Chapter ${chapterNum} and the rest of this dissertation, please upgrade this project for 10,000 MWK.`
+                content: `This project is currently on the Free Plan. To unlock Chapter ${chapterNum} and the rest of this dissertation, please upgrade this project for 10,000 Tokens.`
             });
             return;
         }
@@ -526,7 +526,7 @@ export const useDissertation = () => {
                 role: 'ai',
                 type: 'upgrade_required',
                 chapterNum: chapterNum,
-                content: `Please upgrade this dissertation to Pro (10,000 MWK) to approve the plan and start drafting Chapter ${chapterNum}.`
+                content: `Please upgrade this dissertation to Pro (10,000 Tokens) to approve the plan and start drafting Chapter ${chapterNum}.`
             });
             return;
         }

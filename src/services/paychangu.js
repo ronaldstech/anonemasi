@@ -2,7 +2,7 @@
 // Operator detection + transaction logging + payment verification
 
 import { db } from '../firebase';
-import { collection, addDoc, updateDoc, doc, Timestamp, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, doc, Timestamp, query, where, getDocs, orderBy, getDoc, increment } from 'firebase/firestore';
 
 const PAYCHANGU_BASE_URL = 'https://api.paychangu.com';
 
@@ -291,11 +291,22 @@ async function pollPaymentStatus(chargeId, transactionDocId, onStatusUpdate) {
 
             if (status === 'success' || status === 'successful' || status === 'completed') {
                 await updateTransactionStatus(transactionDocId, 'success', result);
+                
+                // If this was a token purchase, add tokens to user balance
+                const txnSnap = await getDoc(doc(db, 'transactions', transactionDocId));
+                if (txnSnap.exists()) {
+                    const txnData = txnSnap.data();
+                    if (txnData.resourceType === 'tokens') {
+                        const userRef = doc(db, 'users', txnData.userId);
+                        await updateDoc(userRef, {
+                            tokens: increment(txnData.amount), // 1 MWK = 1 Token
+                            updatedAt: Timestamp.now()
+                        });
+                        console.log(`[PayChangu] Added ${txnData.amount} tokens to user ${txnData.userId}`);
+                    }
+                }
+                
                 return 'success';
-            }
-            if (status === 'failed' || status === 'cancelled' || status === 'canceled' || status === 'declined') {
-                await updateTransactionStatus(transactionDocId, 'failed', result);
-                return 'failed';
             }
         } catch (err) {
             console.warn(`[PayChangu] Poll attempt ${attempt} error:`, err.message);
@@ -364,3 +375,18 @@ export async function processPayment({ phone, email, firstName, lastName, operat
     // 3. Poll
     return pollPaymentStatus(chargeId, transactionDocId, onStatusUpdate);
 }
+
+/**
+ * Specifically for buying tokens (re-uses processPayment with resourceType='tokens').
+ */
+export async function processTokenPurchase({ phone, email, firstName, lastName, operator, userId, amount, onStatusUpdate }) {
+    return processPayment({
+        phone, email, firstName, lastName, operator,
+        resourceType: 'tokens',
+        resourceId: 'token_purchase',
+        userId,
+        amount,
+        onStatusUpdate
+    });
+}
+
